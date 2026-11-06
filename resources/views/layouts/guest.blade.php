@@ -31,12 +31,12 @@
 
         <div class="relative z-10 flex min-h-screen flex-col">
             <!-- Brand -->
-            <header class="px-5 pt-10 sm:pt-12">
-                <a href="{{ url('/') }}" class="mx-auto flex w-fit items-center gap-3">
-                    <x-clinic-logo class="h-11 w-11" />
-                    <span class="text-[17px] font-bold tracking-tight text-clinic-950 sm:text-[20px]">Sombilon-Sabuga Dental Clinic</span>
+            <header class="px-5 pt-9 text-center sm:pt-12">
+                <a href="{{ url('/') }}" class="inline-flex flex-col items-center gap-3 sm:flex-row sm:gap-3.5">
+                    <x-clinic-logo ring="ring-[4px] ring-white" class="h-14 w-14 shadow-[0_16px_30px_-16px_rgba(16,146,106,0.6)] sm:h-12 sm:w-12" />
+                    <span class="text-[22px] font-extrabold leading-7 tracking-tight text-clinic-950 sm:leading-6 sm:text-[20px]">Sombilon-Sabuga Dental Clinic</span>
                 </a>
-                <p class="mt-2 text-center text-sm text-clinic-950/60">
+                <p class="mt-2.5 text-[15px] font-medium text-clinic-950/70">
                     Your smile, our passion. Expert care for a healthier you.
                 </p>
             </header>
