@@ -3,9 +3,9 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Private Dental Clinic — your trusted partner in achieving excellent oral health and confident smiles.">
+        <meta name="description" content="Sombilon-Sabuga Dental Clinic — your trusted partner in achieving excellent oral health and confident smiles.">
 
-        <title>Private Dental Clinic</title>
+        <title>Sombilon-Sabuga Dental Clinic</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,7 +40,7 @@
                 <!-- Brand -->
                 <a href="#home" class="flex items-center gap-3">
                     <x-clinic-logo class="h-10 w-10" />
-                    <span class="text-[20px] font-bold tracking-tight text-clinic-950">Private Dental Clinic</span>
+                    <span class="text-[17px] font-bold tracking-tight text-clinic-950 sm:text-[20px]">Sombilon-Sabuga Dental Clinic</span>
                 </a>
 
                 <div class="ml-auto hidden items-center gap-2 lg:flex">
@@ -70,17 +70,49 @@
 
                 <!-- Mobile menu button -->
                 <button type="button" @click="open = ! open" class="ms-auto inline-flex items-center justify-center rounded-xl p-2 text-clinic-800 transition-colors hover:bg-clinic-100 focus:outline-none focus:ring-2 focus:ring-clinic-500 lg:hidden" aria-label="Toggle navigation">
-                    <svg x-show="! open" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                    <svg x-show="open" x-cloak class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <span class="relative block h-6 w-6">
+                        <!-- Hamburger -->
+                        <svg
+                            x-show="! open"
+                            class="absolute inset-0 h-6 w-6 transition-all duration-300 ease-out"
+                            x-transition:enter="transition-all duration-300 ease-out"
+                            x-transition:enter-start="opacity-0 rotate-90 scale-50"
+                            x-transition:enter-end="opacity-100 rotate-0 scale-100"
+                            x-transition:leave="transition-all duration-200 ease-in"
+                            x-transition:leave-start="opacity-100 rotate-0 scale-100"
+                            x-transition:leave-end="opacity-0 -rotate-90 scale-50"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <!-- Close -->
+                        <svg
+                            x-show="open"
+                            x-cloak
+                            class="absolute inset-0 h-6 w-6 transition-all duration-300 ease-out"
+                            x-transition:enter="transition-all duration-300 ease-out"
+                            x-transition:enter-start="opacity-0 -rotate-90 scale-50"
+                            x-transition:enter-end="opacity-100 rotate-0 scale-100"
+                            x-transition:leave="transition-all duration-200 ease-in"
+                            x-transition:leave-start="opacity-100 rotate-0 scale-100"
+                            x-transition:leave-end="opacity-0 rotate-90 scale-50"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </span>
                 </button>
             </div>
 
             <!-- Mobile navigation -->
-            <div x-show="open" x-cloak x-transition class="border-t border-clinic-950/5 bg-white px-5 pb-6 pt-2 lg:hidden">
+            <div
+                x-show="open"
+                x-cloak
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 -translate-y-3 scale-y-90"
+                x-transition:enter-end="opacity-100 translate-y-0 scale-y-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 scale-y-100"
+                x-transition:leave-end="opacity-0 -translate-y-2 scale-y-95"
+                class="origin-top border-t border-clinic-950/5 bg-white px-5 pb-6 pt-2 lg:hidden">
                 <nav class="flex flex-col">
                     <a href="#home" @click="open = false" class="rounded-xl px-4 py-3 text-base font-medium text-slate-700 transition-colors hover:bg-clinic-50 hover:text-clinic-700">Home</a>
                     <a href="#about" @click="open = false" class="rounded-xl px-4 py-3 text-base font-medium text-slate-700 transition-colors hover:bg-clinic-50 hover:text-clinic-700">About Us</a>
@@ -115,8 +147,8 @@
             <div class="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
                 <x-clinic-logo ring="ring-[6px] ring-white/90" class="mx-auto h-20 w-20 shadow-[0_25px_50px_-20px_rgba(16,146,106,0.55)]" />
 
-                <h1 class="mt-8 text-[42px] font-extrabold leading-[1.06] tracking-tight text-clinic-950 sm:text-[54px] lg:text-[62px]">
-                    Private
+                <h1 class="mt-8 text-[36px] font-extrabold leading-[1.06] tracking-tight text-clinic-950 sm:text-[50px] lg:text-[60px]">
+                    <span class="block">Sombilon-Sabuga</span>
                     <span class="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Dental Clinic</span>
                 </h1>
 
@@ -168,7 +200,7 @@
 
                 <div class="mt-9 space-y-6 text-[17px] leading-[1.85] text-slate-600 sm:text-[18px]">
                     <p>
-                        Welcome to Private Dental Clinic &ndash; your trusted partner in achieving excellent oral health
+                        Welcome to Sombilon-Sabuga Dental Clinic &ndash; your trusted partner in achieving excellent oral health
                         and confident smiles. We are dedicated to providing comprehensive, high-quality dental
                         care in a safe, comfortable, and friendly environment.
                     </p>
@@ -182,7 +214,7 @@
                     </p>
 
                     <p>
-                        At Private Dental Clinic, we believe that a healthy smile is the foundation of overall well-being.
+                        At Sombilon-Sabuga Dental Clinic, we believe that a healthy smile is the foundation of overall well-being.
                         Beyond treatment, we focus on patient education and preventive care, empowering
                         you to maintain your oral health for years to come.
                     </p>
@@ -346,7 +378,7 @@
                 <div>
                     <a href="#home" class="flex items-center gap-3">
                         <x-clinic-logo ring="ring-4 ring-white/10" class="h-11 w-11" />
-                        <span class="text-[20px] font-bold tracking-tight text-white">Private Dental Clinic</span>
+                        <span class="text-[20px] font-bold tracking-tight text-white">Sombilon-Sabuga Dental Clinic</span>
                     </a>
                     <p class="mt-5 max-w-sm text-[15px] leading-7">
                         Dedicated to providing exceptional dental care. Your healthy, confident smile is our priority.
@@ -377,7 +409,7 @@
             </div>
 
             <div class="border-t border-white/10 py-6 text-center text-[14px] text-emerald-100/50">
-                &copy; {{ date('Y') }} Private Dental Clinic. All rights reserved.
+                &copy; {{ date('Y') }} Sombilon-Sabuga Dental Clinic. All rights reserved.
             </div>
         </footer>
     </body>
