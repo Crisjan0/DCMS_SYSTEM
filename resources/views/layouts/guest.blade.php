@@ -19,6 +19,10 @@
             body {
                 font-family: 'Inter', 'Figtree', ui-sans-serif, system-ui, sans-serif;
             }
+
+            [x-cloak] {
+                display: none !important;
+            }
         </style>
     </head>
     <body class="relative min-h-screen bg-clinic-50 font-sans text-slate-800 antialiased">
