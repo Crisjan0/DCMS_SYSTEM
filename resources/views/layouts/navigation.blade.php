@@ -16,6 +16,19 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
+                    @if (Auth::user()->hasRole('staff', 'admin'))
+                        <x-nav-link :href="route('staff.appointments.index')" :active="request()->routeIs('staff.appointments.*')">
+                            {{ __('Appointments') }}
+                        </x-nav-link>
+                    @else
+                        <x-nav-link :href="route('appointments.create')" :active="request()->routeIs('appointments.create')">
+                            {{ __('Book Appointment') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.index')">
+                            {{ __('My Appointments') }}
+                        </x-nav-link>
+                    @endif
+
                     @if (Auth::user()->hasRole('admin'))
                         <x-nav-link :href="route('admin.dentists.index')" :active="request()->routeIs('admin.dentists.*')">
                             {{ __('Dentists') }}
@@ -76,6 +89,19 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @if (Auth::user()->hasRole('staff', 'admin'))
+                <x-responsive-nav-link :href="route('staff.appointments.index')" :active="request()->routeIs('staff.appointments.*')">
+                    {{ __('Appointments') }}
+                </x-responsive-nav-link>
+            @else
+                <x-responsive-nav-link :href="route('appointments.create')" :active="request()->routeIs('appointments.create')">
+                    {{ __('Book Appointment') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.index')">
+                    {{ __('My Appointments') }}
+                </x-responsive-nav-link>
+            @endif
 
             @if (Auth::user()->hasRole('admin'))
                 <x-responsive-nav-link :href="route('admin.dentists.index')" :active="request()->routeIs('admin.dentists.*')">

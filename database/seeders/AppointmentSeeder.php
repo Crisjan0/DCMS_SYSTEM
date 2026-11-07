@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Appointment;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -40,11 +41,8 @@ class AppointmentSeeder extends Seeder
             return;
         }
 
-        $services = [
-            'Consultation', 'Oral Prophylaxis (Cleaning)', 'Tooth Extraction',
-            'Composite Filling', 'Root Canal Treatment', 'Braces Adjustment',
-            'Teeth Whitening', 'Wisdom Tooth Removal', 'Denture Fitting',
-        ];
+        $services = Appointment::SERVICES;
+        $timeSlots = Appointment::timeSlots();
 
         $pastWeights = [['completed', 85], ['cancelled', 7], ['no_show', 8]];
         $recentWeights = [['completed', 30], ['confirmed', 30], ['pending', 30], ['cancelled', 5], ['no_show', 5]];
@@ -98,7 +96,7 @@ class AppointmentSeeder extends Seeder
                     'patient_id' => $patientIds[array_rand($patientIds)],
                     'dentist_id' => $doctorIds[array_rand($doctorIds)],
                     'scheduled_date' => $day->toDateString(),
-                    'scheduled_time' => sprintf('%02d:%02d:00', random_int(9, 16), random_int(0, 1) ? 30 : 0),
+                    'scheduled_time' => $timeSlots[array_rand($timeSlots)].':00',
                     'service' => $services[array_rand($services)],
                     'notes' => null,
                     'status' => $this->weightedPick($weights),
