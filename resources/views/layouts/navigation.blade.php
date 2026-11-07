@@ -15,6 +15,12 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @if (Auth::user()->hasRole('admin'))
+                        <x-nav-link :href="route('admin.dentists.index')" :active="request()->routeIs('admin.dentists.*')">
+                            {{ __('Dentists') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -70,6 +76,12 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @if (Auth::user()->hasRole('admin'))
+                <x-responsive-nav-link :href="route('admin.dentists.index')" :active="request()->routeIs('admin.dentists.*')">
+                    {{ __('Dentists') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

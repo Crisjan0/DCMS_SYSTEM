@@ -32,7 +32,7 @@ class AppointmentSeeder extends Seeder
     public function run(): void
     {
         $patientIds = DB::table('patients')->where('role', 'patient')->pluck('id')->all();
-        $doctorIds = DB::table('patients')->where('role', 'doctor')->pluck('user_id')->all();
+        $doctorIds = DB::table('dentists')->pluck('id')->all();
 
         if ($patientIds === [] || $doctorIds === []) {
             $this->command?->error('Seed PatientSeeder first.');

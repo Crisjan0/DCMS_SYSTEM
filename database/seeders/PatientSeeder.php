@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Dentist;
 use App\Models\Patient;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -10,40 +11,65 @@ class PatientSeeder extends Seeder
 {
     public function run(): void
     {
-        // ── Demo accounts: admin / staff / doctors ──
-        // Role is stored on the linked patient profile (per clinic schema).
-        $accounts = [
-            ['name' => 'Clinic Admin', 'email' => 'admin@dcms.test', 'role' => 'admin', 'lastname' => 'Administrator', 'firstname' => 'Clinic', 'gender' => 'male'],
-            ['name' => 'Reception Staff', 'email' => 'staff@dcms.test', 'role' => 'staff', 'lastname' => 'Santos', 'firstname' => 'Maria', 'gender' => 'female'],
-            ['name' => 'Dr. Ana Reyes', 'email' => 'dr.reyes@dcms.test', 'role' => 'doctor', 'lastname' => 'Reyes', 'firstname' => 'Ana', 'gender' => 'female'],
-            ['name' => 'Dr. Carlo Cruz', 'email' => 'dr.cruz@dcms.test', 'role' => 'doctor', 'lastname' => 'Cruz', 'firstname' => 'Carlo', 'gender' => 'male'],
+        // ── Clinic admin: a user account with the is_admin flag (no patient profile) ──
+        User::create([
+            'name' => 'Clinic Admin',
+            'email' => 'admin@dcms.test',
+            'password' => 'password',
+            'is_admin' => true,
+        ]);
+
+        // ── Demo account: reception staff (patient profile with role 'staff') ──
+        $staff = User::create([
+            'name' => 'Reception Staff',
+            'email' => 'staff@dcms.test',
+            'password' => 'password',
+        ]);
+
+        Patient::create([
+            'user_id' => $staff->id,
+            'lastname' => 'Santos',
+            'firstname' => 'Maria',
+            'middlename' => fake()->lastName(),
+            'date_of_birth' => fake()->dateTimeBetween('-60 years', '-25 years')->format('Y-m-d'),
+            'mobile_number' => fake()->numerify('09#########'),
+            'gender' => 'female',
+            'civil_status' => fake()->randomElement(['single', 'married']),
+            'address' => fake()->streetAddress().', Cebu City',
+            'occupation' => 'Clinic Personnel',
+            'patient_type' => 'regular',
+            'profile_picture' => null,
+            'role' => 'staff',
+        ]);
+
+        // ── Dentist accounts with their own dentists profile table ──
+        $dentists = [
+            ['name' => 'Dr. Ana Reyes', 'email' => 'dr.reyes@dcms.test', 'lastname' => 'Reyes', 'firstname' => 'Ana', 'gender' => 'female', 'license' => 'DMD-00001', 'specialty' => 'General Dentistry'],
+            ['name' => 'Dr. Carlo Cruz', 'email' => 'dr.cruz@dcms.test', 'lastname' => 'Cruz', 'firstname' => 'Carlo', 'gender' => 'male', 'license' => 'DMD-00002', 'specialty' => 'Orthodontics'],
         ];
 
-        foreach ($accounts as $account) {
+        foreach ($dentists as $dentist) {
             $user = User::create([
-                'name' => $account['name'],
-                'email' => $account['email'],
+                'name' => $dentist['name'],
+                'email' => $dentist['email'],
                 'password' => 'password',
             ]);
 
-            Patient::create([
+            Dentist::create([
                 'user_id' => $user->id,
-                'lastname' => $account['lastname'],
-                'firstname' => $account['firstname'],
+                'lastname' => $dentist['lastname'],
+                'firstname' => $dentist['firstname'],
                 'middlename' => fake()->lastName(),
-                'date_of_birth' => fake()->dateTimeBetween('-60 years', '-25 years')->format('Y-m-d'),
+                'date_of_birth' => fake()->dateTimeBetween('-60 years', '-30 years')->format('Y-m-d'),
                 'mobile_number' => fake()->numerify('09#########'),
-                'gender' => $account['gender'],
-                'civil_status' => fake()->randomElement(['single', 'married']),
-                'address' => fake()->streetAddress().', Cebu City',
-                'occupation' => 'Clinic Personnel',
-                'patient_type' => 'regular',
+                'gender' => $dentist['gender'],
+                'license_number' => $dentist['license'],
+                'specialty' => $dentist['specialty'],
                 'profile_picture' => null,
-                'role' => $account['role'],
             ]);
         }
 
-        // ── 40 regular patients that generate the historical visits ──
+        // ── Regular patients that generate the historical visits ──
         for ($i = 1; $i <= 40; $i++) {
             $gender = fake()->randomElement(['male', 'female']);
             $firstname = fake()->firstName($gender === 'female' ? 'female' : 'male');

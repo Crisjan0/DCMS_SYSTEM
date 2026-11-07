@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_admin',
     ];
 
     /**
@@ -43,6 +44,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
     }
 
@@ -55,12 +57,27 @@ class User extends Authenticatable
     }
 
     /**
-     * Check the user's clinic role (stored on the linked patient profile).
+     * The dentist profile linked to this user account.
+     */
+    public function dentist(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Dentist::class);
+    }
+
+    /**
+     * Check the user's clinic role.
+     *
+     * Admin is a flag on the user account itself (`users.is_admin`),
+     * while staff/patient roles are stored on the linked patient profile.
      */
     public function hasRole(string ...$roles): bool
     {
+        if (in_array('admin', $roles, true) && $this->is_admin) {
+            return true;
+        }
+
         $role = $this->patient?->role;
 
-        return $role !== null && in_array($role, $roles);
+        return $role !== null && in_array($role, $roles, true);
     }
 }

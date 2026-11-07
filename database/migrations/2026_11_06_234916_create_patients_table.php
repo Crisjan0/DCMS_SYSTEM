@@ -30,8 +30,8 @@ return new class extends Migration
             $table->string('occupation')->nullable();
             $table->string('patient_type');
             $table->string('profile_picture')->nullable();
-            $table->enum('role', ['user', 'patient', 'staff', 'doctor', 'admin'])
-                ->default('user');
+            $table->enum('role', ['patient', 'staff'])
+                ->default('patient');
 
             $table->timestamps();
         });
