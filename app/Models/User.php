@@ -45,4 +45,22 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * The clinic profile linked to this user account.
+     */
+    public function patient(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Patient::class);
+    }
+
+    /**
+     * Check the user's clinic role (stored on the linked patient profile).
+     */
+    public function hasRole(string ...$roles): bool
+    {
+        $role = $this->patient?->role;
+
+        return $role !== null && in_array($role, $roles);
+    }
 }
