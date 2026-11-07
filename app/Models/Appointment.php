@@ -48,6 +48,17 @@ class Appointment extends Model
         ];
     }
 
+    /**
+     * Always display the time as HH:MM (e.g. 12:30) — the datetime cast
+     * alone would echo the full "Y-m-d H:i" string.
+     */
+    protected function scheduledTime(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn ($value) => filled($value) ? Carbon::parse($value)->format('H:i') : null,
+        );
+    }
+
     public function patient(): BelongsTo
     {
         return $this->belongsTo(Patient::class);

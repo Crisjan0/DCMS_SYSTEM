@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-clinic-950 leading-tight">
             {{ __('Assign Dentist') }}
         </h2>
     </x-slot>
@@ -8,7 +8,7 @@
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8 space-y-6">
             <!-- Appointment summary -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="overflow-hidden rounded-3xl bg-white shadow-[0_20px_45px_-28px_rgba(10,47,37,0.45)] ring-1 ring-clinic-950/5">
                 <div class="p-6 space-y-1">
                     <div class="flex items-center justify-between mb-2">
                         <div class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Appointment request</div>
@@ -36,11 +36,11 @@
             </div>
 
             <form action="{{ route('staff.appointments.assign', $appointment) }}" method="POST"
-                  class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                  class="overflow-hidden rounded-3xl bg-white shadow-[0_20px_45px_-28px_rgba(10,47,37,0.45)] ring-1 ring-clinic-950/5">
                 @csrf
                 @method('PATCH')
                 <div class="p-6">
-                    <h3 class="font-semibold text-lg text-gray-800 mb-1">Pick an available dentist</h3>
+                    <h3 class="font-semibold text-lg text-clinic-950 mb-1">Pick an available dentist</h3>
                     <p class="text-sm text-slate-500 mb-5">
                         Only dentists free at this date &amp; time slot are selectable. Assignment confirms the appointment.
                     </p>

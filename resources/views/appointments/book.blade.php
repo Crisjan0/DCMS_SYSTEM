@@ -1,13 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-clinic-950 leading-tight">
             {{ __('Book Appointment') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="overflow-hidden rounded-3xl bg-white shadow-[0_20px_45px_-28px_rgba(10,47,37,0.45)] ring-1 ring-clinic-950/5">
                 <div class="p-6">
                     <p class="text-sm text-slate-500 mb-6">
                         Pick a service, date and time slot. The staff will then assign an available dentist — your
@@ -63,7 +63,7 @@
                                     <div>
                                         <x-input-label for="gender" value="Gender" />
                                         <select id="gender" name="gender" required
-                                                class="block w-full rounded-xl border border-slate-200 bg-white text-slate-900 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25">
+                                                class="block w-full rounded-2xl border border-clinic-950/10 bg-white text-slate-900 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25">
                                             <option value="" @selected(! old('gender')) disabled>— Select —</option>
                                             @foreach (['male', 'female', 'other'] as $gender)
                                                 <option value="{{ $gender }}" @selected(old('gender') === $gender)>{{ ucfirst($gender) }}</option>
@@ -75,7 +75,7 @@
                                     <div>
                                         <x-input-label for="civil_status" value="Civil Status" />
                                         <select id="civil_status" name="civil_status" required
-                                                class="block w-full rounded-xl border border-slate-200 bg-white text-slate-900 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25">
+                                                class="block w-full rounded-2xl border border-clinic-950/10 bg-white text-slate-900 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25">
                                             <option value="" @selected(! old('civil_status')) disabled>— Select —</option>
                                             @foreach (['single', 'married', 'widowed', 'separated', 'divorced'] as $status)
                                                 <option value="{{ $status }}" @selected(old('civil_status') === $status)>{{ ucfirst($status) }}</option>
@@ -94,7 +94,7 @@
                                 <div>
                                     <x-input-label for="address" value="Address" />
                                     <textarea id="address" name="address" rows="2" required
-                                              class="block w-full rounded-xl border border-slate-200 bg-white text-slate-900 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25">{{ old('address') }}</textarea>
+                                              class="block w-full rounded-2xl border border-clinic-950/10 bg-white text-slate-900 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25">{{ old('address') }}</textarea>
                                     <x-input-error :messages="$errors->get('address')" class="mt-2" />
                                 </div>
                             </div>
@@ -104,7 +104,7 @@
                             <div>
                                 <x-input-label for="service" value="Service" />
                                 <select id="service" name="service" required
-                                        class="block w-full rounded-xl border border-slate-200 bg-slate-50/60 text-slate-900 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25 focus:bg-white">
+                                        class="block w-full rounded-2xl border border-clinic-950/10 bg-white/70 text-slate-900 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25 focus:bg-white">
                                     <option value="" @selected(! old('service')) disabled>— Select a service —</option>
                                     @foreach ($services as $service)
                                         <option value="{{ $service }}" @selected(old('service') === $service)>{{ $service }}</option>
@@ -143,7 +143,7 @@
                             <div>
                                 <x-input-label for="notes" value="Notes (optional)" />
                                 <textarea id="notes" name="notes" rows="3"
-                                          class="block w-full rounded-xl border border-slate-200 bg-slate-50/60 text-slate-900 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25 focus:bg-white">{{ old('notes') }}</textarea>
+                                          class="block w-full rounded-2xl border border-clinic-950/10 bg-white/70 text-slate-900 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25 focus:bg-white">{{ old('notes') }}</textarea>
                                 <x-input-error :messages="$errors->get('notes')" class="mt-2" />
                             </div>
                         </div>

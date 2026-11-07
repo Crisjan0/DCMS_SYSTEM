@@ -1,13 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-clinic-950 leading-tight">
             {{ __('Edit Dentist') }} — Dr. {{ $dentist->fullname() }}
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="overflow-hidden rounded-3xl bg-white shadow-[0_20px_45px_-28px_rgba(10,47,37,0.45)] ring-1 ring-clinic-950/5">
                 <div class="p-6">
                     @if (session('success'))
                         <div class="mb-5 p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">

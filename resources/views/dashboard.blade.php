@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-clinic-950 leading-tight">
             {{ __('Dashboard') }}
         </h2>
     </x-slot>
@@ -9,7 +9,7 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="overflow-hidden rounded-3xl bg-white shadow-[0_20px_45px_-28px_rgba(10,47,37,0.45)] ring-1 ring-clinic-950/5">
                 <div class="p-6 text-gray-900">
                     {{ __("You're logged in!") }}
                 </div>
@@ -19,7 +19,7 @@
                 <div class="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
                         <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
-                            <h3 class="font-semibold text-lg text-gray-800">📈 Appointment Forecast &amp; Clinic Volume</h3>
+                            <h3 class="font-semibold text-lg text-clinic-950">📈 Appointment Forecast &amp; Clinic Volume</h3>
                             <span id="forecast-accuracy" class="text-sm text-gray-500"></span>
                         </div>
                         <p class="text-sm text-gray-500">

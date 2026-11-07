@@ -18,7 +18,7 @@ class DentistController extends Controller
     public function index(): View
     {
         return view('admin.dentists.index', [
-            'dentists' => Dentist::with('user')->orderBy('lastname')->get(),
+            'dentists' => Dentist::with('user')->orderBy('lastname')->paginate(10),
         ]);
     }
 

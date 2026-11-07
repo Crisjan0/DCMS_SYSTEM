@@ -22,14 +22,16 @@ class StaffAppointmentController extends Controller
             ->where('status', 'pending')
             ->orderBy('scheduled_date')
             ->orderBy('scheduled_time')
-            ->get();
+            ->paginate(10, ['*'], 'pending_page')
+            ->withQueryString();
 
         $upcoming = Appointment::with(['patient.user', 'dentist.user'])
             ->where('status', 'confirmed')
             ->whereDate('scheduled_date', '>=', today()->toDateString())
             ->orderBy('scheduled_date')
             ->orderBy('scheduled_time')
-            ->get();
+            ->paginate(10, ['*'], 'upcoming_page')
+            ->withQueryString();
 
         return view('staff.appointments.index', [
             'pending' => $pending,

@@ -149,8 +149,8 @@ class AppointmentController extends Controller
             ? $patient->appointments()->with('dentist.user')
                 ->orderByDesc('scheduled_date')
                 ->orderByDesc('scheduled_time')
-                ->get()
-            : collect();
+                ->paginate(10)
+            : Appointment::query()->whereRaw('1 = 0')->paginate(10);
 
         return view('appointments.index', [
             'appointments' => $appointments,

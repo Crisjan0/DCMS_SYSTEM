@@ -1,138 +1,211 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
-                    </a>
-                </div>
+@php
+    // Single source of truth for nav links — shared by the desktop sidebar
+    // and the responsive drawer.
+    $navItems = [
+        [
+            'label' => __('Dashboard'),
+            'href' => route('dashboard'),
+            'active' => request()->routeIs('dashboard'),
+            'icon' => 'dashboard',
+        ],
+    ];
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
+    if (Auth::user()->hasRole('staff', 'admin')) {
+        $navItems[] = [
+            'label' => __('Appointments'),
+            'href' => route('staff.appointments.index'),
+            'active' => request()->routeIs('staff.appointments.*'),
+            'icon' => 'calendar',
+        ];
+    } else {
+        $navItems[] = [
+            'label' => __('Book Appointment'),
+            'href' => route('appointments.create'),
+            'active' => request()->routeIs('appointments.create'),
+            'icon' => 'plus',
+        ];
+        $navItems[] = [
+            'label' => __('My Appointments'),
+            'href' => route('appointments.index'),
+            'active' => request()->routeIs('appointments.index'),
+            'icon' => 'calendar',
+        ];
+    }
 
-                    @if (Auth::user()->hasRole('staff', 'admin'))
-                        <x-nav-link :href="route('staff.appointments.index')" :active="request()->routeIs('staff.appointments.*')">
-                            {{ __('Appointments') }}
-                        </x-nav-link>
-                    @else
-                        <x-nav-link :href="route('appointments.create')" :active="request()->routeIs('appointments.create')">
-                            {{ __('Book Appointment') }}
-                        </x-nav-link>
-                        <x-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.index')">
-                            {{ __('My Appointments') }}
-                        </x-nav-link>
-                    @endif
+    if (Auth::user()->hasRole('admin')) {
+        $navItems[] = [
+            'label' => __('Dentists'),
+            'href' => route('admin.dentists.index'),
+            'active' => request()->routeIs('admin.dentists.*'),
+            'icon' => 'users',
+        ];
+    }
 
-                    @if (Auth::user()->hasRole('admin'))
-                        <x-nav-link :href="route('admin.dentists.index')" :active="request()->routeIs('admin.dentists.*')">
-                            {{ __('Dentists') }}
-                        </x-nav-link>
-                    @endif
-                </div>
-            </div>
+    $navItems[] = [
+        'label' => __('Profile'),
+        'href' => route('profile.edit'),
+        'active' => request()->routeIs('profile.*'),
+        'icon' => 'user',
+    ];
+@endphp
 
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+<!-- ── Desktop sidebar (≥ lg) ── -->
+<aside class="fixed inset-y-0 start-0 z-50 hidden w-64 flex-col overflow-y-auto bg-clinic-950 text-emerald-50 lg:flex">
+    <!-- Brand -->
+    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-6 pb-6 pt-7">
+        <x-clinic-logo ring="ring-4 ring-white/10" class="h-11 w-11" />
+        <span class="leading-5">
+            <span class="block text-[15px] font-bold tracking-tight text-white">Sombilon-Sabuga</span>
+            <span class="block text-[13px] font-semibold text-emerald-300/80">Dental Clinic</span>
+        </span>
+    </a>
 
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </x-slot>
+    <!-- Section label -->
+    <p class="px-8 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-200/40">
+        Clinic Portal
+    </p>
 
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
+    <!-- Links -->
+    <div class="flex flex-1 flex-col gap-1 px-4">
+        @foreach ($navItems as $item)
+            <a href="{{ $item['href'] }}"
+               @class([
+                   'inline-flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-medium transition-colors duration-150',
+                   'bg-clinic-600 text-white shadow-[0_12px_25px_-12px_rgba(26,148,107,0.8)]' => $item['active'],
+                   'text-emerald-50/70 hover:bg-white/10 hover:text-white focus:outline-none focus:bg-white/10' => ! $item['active'],
+               ])>
+                <x-nav-icon :icon="$item['icon']" :class="$item['active'] ? 'text-white' : 'text-emerald-300/80'" />
+                {{ $item['label'] }}
+            </a>
+        @endforeach
+    </div>
 
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
+    <!-- User block -->
+    <div class="border-t border-white/10 p-4">
+        <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 rounded-2xl bg-white/10 px-3 py-2.5 transition-colors hover:bg-white/15">
+            <x-user-avatar class="h-9 w-9" />
+            <span class="min-w-0 flex-1">
+                <span class="block truncate text-[14px] font-semibold text-white">{{ Auth::user()->name }}</span>
+                <span class="block truncate text-xs text-emerald-100/60">{{ Auth::user()->email }}</span>
+            </span>
+        </a>
 
-                            <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
-            </div>
+        <form method="POST" action="{{ route('logout') }}" class="mt-2">
+            @csrf
+            <button type="submit" class="inline-flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-medium text-emerald-100/80 transition-colors hover:bg-rose-500/15 hover:text-rose-100 focus:outline-none focus:ring-2 focus:ring-clinic-500">
+                <x-nav-icon icon="logout" class="text-rose-300/80" />
+                {{ __('Log Out') }}
+            </button>
+        </form>
+    </div>
+</aside>
 
+<!-- ── Mobile top bar (< lg) ── -->
+<header class="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-clinic-950/5 bg-white/80 px-4 shadow-[0_10px_30px_-20px_rgba(10,47,37,0.35)] backdrop-blur-xl sm:px-5 lg:hidden">
+    <button type="button" @click="open = ! open" class="inline-flex items-center justify-center rounded-xl p-2 text-clinic-800 transition-colors hover:bg-clinic-100 focus:outline-none focus:ring-2 focus:ring-clinic-500" aria-label="Toggle navigation">
+        <span class="relative block h-6 w-6">
             <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+            <svg
+                x-show="! open"
+                class="absolute inset-0 h-6 w-6 transition-all duration-300 ease-out"
+                x-transition:enter="transition-all duration-300 ease-out"
+                x-transition:enter-start="opacity-0 rotate-90 scale-50"
+                x-transition:enter-end="opacity-100 rotate-0 scale-100"
+                x-transition:leave="transition-all duration-200 ease-in"
+                x-transition:leave-start="opacity-100 rotate-0 scale-100"
+                x-transition:leave-end="opacity-0 -rotate-90 scale-50"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <!-- Close -->
+            <svg
+                x-show="open"
+                x-cloak
+                class="absolute inset-0 h-6 w-6 transition-all duration-300 ease-out"
+                x-transition:enter="transition-all duration-300 ease-out"
+                x-transition:enter-start="opacity-0 -rotate-90 scale-50"
+                x-transition:enter-end="opacity-100 rotate-0 scale-100"
+                x-transition:leave="transition-all duration-200 ease-in"
+                x-transition:leave-start="opacity-100 rotate-0 scale-100"
+                x-transition:leave-end="opacity-0 rotate-90 scale-50"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </span>
+    </button>
+
+    <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
+        <x-clinic-logo ring="ring-1 ring-clinic-600/15" class="h-9 w-9" />
+        <span class="text-[16px] font-bold tracking-tight text-clinic-950">Sombilon-Sabuga</span>
+    </a>
+</header>
+
+<!-- ── Mobile drawer (< lg) ── -->
+<div x-show="open"
+     x-cloak
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-150"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     class="fixed inset-0 z-50 lg:hidden">
+
+    <!-- Backdrop -->
+    <div @click="open = false" class="absolute inset-0 bg-clinic-950/50 backdrop-blur-sm"></div>
+
+    <!-- Drawer panel -->
+    <div x-show="open"
+         x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="-translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="-translate-x-full"
+         class="absolute inset-y-0 start-0 flex w-72 flex-col overflow-y-auto bg-clinic-950 text-emerald-50 shadow-[0_35px_70px_-35px_rgba(10,47,37,0.75)]">
+
+        <!-- Brand -->
+        <a href="{{ route('dashboard') }}" @click="open = false" class="flex items-center gap-3 px-6 pb-6 pt-7">
+            <x-clinic-logo ring="ring-4 ring-white/10" class="h-11 w-11" />
+            <span class="leading-5">
+                <span class="block text-[15px] font-bold tracking-tight text-white">Sombilon-Sabuga</span>
+                <span class="block text-[13px] font-semibold text-emerald-300/80">Dental Clinic</span>
+            </span>
+        </a>
+
+        <!-- Links -->
+        <div class="flex flex-1 flex-col gap-1 px-4">
+            @foreach ($navItems as $item)
+                <a href="{{ $item['href'] }}" @click="open = false"
+                   @class([
+                       'inline-flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-medium transition-colors duration-150',
+                       'bg-clinic-600 text-white shadow-[0_12px_25px_-12px_rgba(26,148,107,0.8)]' => $item['active'],
+                       'text-emerald-50/70 hover:bg-white/10 hover:text-white' => ! $item['active'],
+                   ])>
+                    <x-nav-icon :icon="$item['icon']" :class="$item['active'] ? 'text-white' : 'text-emerald-300/80'" />
+                    {{ $item['label'] }}
+                </a>
+            @endforeach
+        </div>
+
+        <!-- User block -->
+        <div class="border-t border-white/10 p-4">
+            <a href="{{ route('profile.edit') }}" @click="open = false" class="flex items-center gap-3 rounded-2xl bg-white/10 px-3 py-2.5 transition-colors hover:bg-white/15">
+                <x-user-avatar class="h-9 w-9" />
+                <span class="min-w-0 flex-1">
+                    <span class="block truncate text-[14px] font-semibold text-white">{{ Auth::user()->name }}</span>
+                    <span class="block truncate text-xs text-emerald-100/60">{{ Auth::user()->email }}</span>
+                </span>
+            </a>
+
+            <form method="POST" action="{{ route('logout') }}" class="mt-2">
+                @csrf
+                <button type="submit" class="inline-flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-medium text-emerald-100/80 transition-colors hover:bg-rose-500/15 hover:text-rose-100 focus:outline-none focus:ring-2 focus:ring-clinic-500">
+                    <x-nav-icon icon="logout" class="text-rose-300/80" />
+                    {{ __('Log Out') }}
                 </button>
-            </div>
+            </form>
         </div>
     </div>
-
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-
-            @if (Auth::user()->hasRole('staff', 'admin'))
-                <x-responsive-nav-link :href="route('staff.appointments.index')" :active="request()->routeIs('staff.appointments.*')">
-                    {{ __('Appointments') }}
-                </x-responsive-nav-link>
-            @else
-                <x-responsive-nav-link :href="route('appointments.create')" :active="request()->routeIs('appointments.create')">
-                    {{ __('Book Appointment') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.index')">
-                    {{ __('My Appointments') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if (Auth::user()->hasRole('admin'))
-                <x-responsive-nav-link :href="route('admin.dentists.index')" :active="request()->routeIs('admin.dentists.*')">
-                    {{ __('Dentists') }}
-                </x-responsive-nav-link>
-            @endif
-        </div>
-
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-            </div>
-
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
-
-                <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-                </form>
-            </div>
-        </div>
-    </div>
-</nav>
+</div>

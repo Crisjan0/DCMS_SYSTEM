@@ -368,4 +368,31 @@ class AppointmentBookingTest extends TestCase
 
         $this->assertSame('completed', $appointment->fresh()->status);
     }
+
+    public function test_my_appointments_list_is_paginated_by_ten(): void
+    {
+        $user = $this->createPatientUser('Paged Patient');
+        $date = $this->futureWeekday()->toDateString();
+
+        for ($i = 0; $i < 11; $i++) {
+            Appointment::create([
+                'patient_id' => $user->patient->id,
+                'dentist_id' => null,
+                'scheduled_date' => $date,
+                'scheduled_time' => '10:00:00',
+                'service' => 'Consultation',
+                'status' => 'pending',
+            ]);
+        }
+
+        $this->actingAs($user);
+
+        $this->get(route('appointments.index'))
+            ->assertOk()
+            ->assertSee('Next', false); // a second page exists
+
+        $this->get(route('appointments.index', ['page' => 2]))
+            ->assertOk()
+            ->assertSee('Previous', false);
+    }
 }

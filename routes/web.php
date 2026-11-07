@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DentistController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Dashboard\ForecastController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PatientProfileController;
 use App\Http\Controllers\Staff\StaffAppointmentController;
 use Illuminate\Support\Facades\Route;
 
@@ -60,6 +61,7 @@ Route::middleware(['auth', 'verified', 'admin'])
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/patient', [PatientProfileController::class, 'update'])->name('profile.patient.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
