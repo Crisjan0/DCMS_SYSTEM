@@ -9,7 +9,9 @@ namespace App\Services\Forecasting\Strategies;
 class MovingAverageStrategy implements ForecastStrategy
 {
     private int $window = 28;
+
     private float $mean = 0.0;
+
     private float $sigma = 0.0;
 
     public function name(): string

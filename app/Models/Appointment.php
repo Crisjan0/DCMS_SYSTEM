@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -22,9 +23,24 @@ class Appointment extends Model
         'Denture Fitting',
     ];
 
+    /** Suggested cash prices (₱) per service — used by the billing form. */
+    public const SERVICE_PRICES = [
+        'Consultation' => 500,
+        'Oral Prophylaxis (Cleaning)' => 1200,
+        'Tooth Extraction' => 1500,
+        'Composite Filling' => 1800,
+        'Root Canal Treatment' => 6500,
+        'Braces Adjustment' => 2500,
+        'Teeth Whitening' => 5500,
+        'Wisdom Tooth Removal' => 8000,
+        'Denture Fitting' => 12000,
+    ];
+
     /** Clinic operating hours (closed Sundays). */
     public const CLINIC_OPEN_TIME = '09:00';
+
     public const CLINIC_LAST_SLOT_TIME = '16:30';
+
     public const SLOT_MINUTES = 30;
 
     /** Statuses that still hold a time slot. */
@@ -52,9 +68,9 @@ class Appointment extends Model
      * Always display the time as HH:MM (e.g. 12:30) — the datetime cast
      * alone would echo the full "Y-m-d H:i" string.
      */
-    protected function scheduledTime(): \Illuminate\Database\Eloquent\Casts\Attribute
+    protected function scheduledTime(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        return Attribute::make(
             get: fn ($value) => filled($value) ? Carbon::parse($value)->format('H:i') : null,
         );
     }

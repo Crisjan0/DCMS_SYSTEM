@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Dentist;
 use App\Models\Patient;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -66,7 +67,7 @@ class ScheduleTest extends TestCase
     {
         $date = today()->addDays(3);
 
-        while ($date->dayOfWeek === \Carbon\Carbon::SUNDAY) {
+        while ($date->dayOfWeek === Carbon::SUNDAY) {
             $date->addDay();
         }
 
@@ -128,14 +129,13 @@ class ScheduleTest extends TestCase
             ->assertSee('No assigned appointments yet');
     }
 
-    public function test_users_without_dentist_profile_see_not_linked_message(): void
+    public function test_plain_patients_are_forbidden_from_the_schedule_page(): void
     {
         $patientUser = $this->patientUser('plain@dcms.test', 'Plainy', 'Puno');
 
         $this->actingAs($patientUser)
             ->get(route('dentist.schedule'))
-            ->assertOk()
-            ->assertSee('not linked to a dentist profile');
+            ->assertForbidden();
     }
 
     public function test_upcoming_list_is_paginated_by_ten(): void

@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PatientSeeder::class,   // demo admin/staff/doctors + 40 patients
             AppointmentSeeder::class, // 3 years of clinic history
+            ClinicalRecordSeeder::class, // health records, tooth charts, treatments, demo billing
         ]);
     }
 }

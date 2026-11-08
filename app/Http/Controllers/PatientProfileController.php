@@ -24,16 +24,16 @@ class PatientProfileController extends Controller
         }
 
         $validated = $request->validateWithBag('patientUpdate', [
-            'lastname'        => ['required', 'string', 'max:100'],
-            'firstname'       => ['required', 'string', 'max:100'],
-            'middlename'      => ['nullable', 'string', 'max:100'],
-            'date_of_birth'   => ['required', 'date', 'before:today'],
-            'mobile_number'   => ['required', 'string', 'max:20'],
-            'gender'          => ['required', Rule::in(['male', 'female', 'other'])],
-            'civil_status'    => ['required', Rule::in(['single', 'married', 'widowed', 'separated', 'divorced'])],
-            'address'         => ['required', 'string', 'max:500'],
-            'occupation'      => ['nullable', 'string', 'max:255'],
-            'patient_type'    => ['required', Rule::in(['regular', 'new', 'returning'])],
+            'lastname' => ['required', 'string', 'max:100'],
+            'firstname' => ['required', 'string', 'max:100'],
+            'middlename' => ['nullable', 'string', 'max:100'],
+            'date_of_birth' => ['required', 'date', 'before:today'],
+            'mobile_number' => ['required', 'string', 'max:20'],
+            'gender' => ['required', Rule::in(['male', 'female', 'other'])],
+            'civil_status' => ['required', Rule::in(['single', 'married', 'widowed', 'separated', 'divorced'])],
+            'address' => ['required', 'string', 'max:500'],
+            'occupation' => ['nullable', 'string', 'max:255'],
+            'patient_type' => ['required', Rule::in(['regular', 'new', 'returning'])],
             'profile_picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             // 'role' is deliberately excluded — patients cannot change their own role.
         ]);

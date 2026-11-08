@@ -30,7 +30,7 @@
             <div class="flex min-h-screen flex-col lg:pl-64">
                 <!-- Page Heading -->
                 @isset($header)
-                    <header class="border-b border-clinic-950/5 bg-white/70 shadow-[0_10px_30px_-20px_rgba(10,47,37,0.35)] backdrop-blur-xl">
+                    <header class="no-print border-b border-clinic-950/5 bg-white/70 shadow-[0_10px_30px_-20px_rgba(10,47,37,0.35)] backdrop-blur-xl">
                         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                             {{ $header }}
                         </div>
@@ -43,7 +43,7 @@
                 </main>
 
                 <!-- Footer -->
-                <footer class="border-t border-white/10 bg-clinic-950 py-6 text-center text-[14px] text-emerald-100/50">
+                <footer class="no-print border-t border-white/10 bg-clinic-950 py-6 text-center text-[14px] text-emerald-100/50">
                     &copy; {{ date('Y') }} Sombilon-Sabuga Dental Clinic. All rights reserved.
                 </footer>
             </div>

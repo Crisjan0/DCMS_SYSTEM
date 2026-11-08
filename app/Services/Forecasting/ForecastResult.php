@@ -2,13 +2,15 @@
 
 namespace App\Services\Forecasting;
 
+use Carbon\Carbon;
+
 /**
  * Immutable value object returned by the ForecastEngine.
  */
 final class ForecastResult
 {
     /**
-     * @param array<int, array{date: \Carbon\Carbon, predicted: float, lower: float, upper: float, is_peak: bool}> $points
+     * @param  array<int, array{date: Carbon, predicted: float, lower: float, upper: float, is_peak: bool}>  $points
      */
     public function __construct(
         public readonly string $algorithm,
@@ -19,7 +21,7 @@ final class ForecastResult
     ) {}
 
     /**
-     * @return array<int, array{date: \Carbon\Carbon, predicted: float, lower: float, upper: float, is_peak: bool}>
+     * @return array<int, array{date: Carbon, predicted: float, lower: float, upper: float, is_peak: bool}>
      */
     public function peaks(): array
     {

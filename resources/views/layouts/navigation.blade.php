@@ -19,6 +19,24 @@
         ];
     }
 
+    if (Auth::user()->hasRole('staff', 'admin', 'dentist')) {
+        $navItems[] = [
+            'label' => __('Patients'),
+            'href' => route('clinic.patients.index'),
+            'active' => request()->routeIs('clinic.patients.*', 'clinic.treatments.*'),
+            'icon' => 'tooth',
+        ];
+    }
+
+    if (Auth::user()->hasRole('staff', 'admin')) {
+        $navItems[] = [
+            'label' => __('Invoices'),
+            'href' => route('clinic.invoices.index'),
+            'active' => request()->routeIs('clinic.invoices.*'),
+            'icon' => 'invoice',
+        ];
+    }
+
     if (Auth::user()->dentist) {
         $navItems[] = [
             'label' => __('My Schedule'),
@@ -26,7 +44,7 @@
             'active' => request()->routeIs('dentist.schedule'),
             'icon' => 'calendar',
         ];
-    } elseif (! Auth::user()->hasRole('staff', 'admin')) {
+    } elseif (! Auth::user()->hasRole('staff', 'admin', 'dentist')) {
         $navItems[] = [
             'label' => __('Book Appointment'),
             'href' => route('appointments.create'),
@@ -38,6 +56,18 @@
             'href' => route('appointments.index'),
             'active' => request()->routeIs('appointments.index'),
             'icon' => 'calendar',
+        ];
+        $navItems[] = [
+            'label' => __('My Health Record'),
+            'href' => route('my-record.index'),
+            'active' => request()->routeIs('my-record.*'),
+            'icon' => 'heart',
+        ];
+        $navItems[] = [
+            'label' => __('My Invoices'),
+            'href' => route('my-invoices.index'),
+            'active' => request()->routeIs('my-invoices.*', 'clinic.invoices.show'),
+            'icon' => 'invoice',
         ];
     }
 
@@ -59,7 +89,7 @@
 @endphp
 
 <!-- ── Desktop sidebar (≥ lg) ── -->
-<aside class="fixed inset-y-0 start-0 z-50 hidden w-64 flex-col overflow-y-auto bg-clinic-950 text-emerald-50 lg:flex">
+<aside class="no-print fixed inset-y-0 start-0 z-50 hidden w-64 flex-col overflow-y-auto bg-clinic-950 text-emerald-50 lg:flex">
     <!-- Brand -->
     <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-6 pb-6 pt-7">
         <x-clinic-logo ring="ring-4 ring-white/10" class="h-11 w-11" />
@@ -110,7 +140,7 @@
 </aside>
 
 <!-- ── Mobile top bar (< lg) ── -->
-<header class="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-clinic-950/5 bg-white/80 px-4 shadow-[0_10px_30px_-20px_rgba(10,47,37,0.35)] backdrop-blur-xl sm:px-5 lg:hidden">
+<header class="no-print sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-clinic-950/5 bg-white/80 px-4 shadow-[0_10px_30px_-20px_rgba(10,47,37,0.35)] backdrop-blur-xl sm:px-5 lg:hidden">
     <button type="button" @click="open = ! open" class="inline-flex items-center justify-center rounded-xl p-2 text-clinic-800 transition-colors hover:bg-clinic-100 focus:outline-none focus:ring-2 focus:ring-clinic-500" aria-label="Toggle navigation">
         <span class="relative block h-6 w-6">
             <!-- Hamburger -->
@@ -134,7 +164,7 @@
                 x-transition:enter="transition-all duration-300 ease-out"
                 x-transition:enter-start="opacity-0 -rotate-90 scale-50"
                 x-transition:enter-end="opacity-100 rotate-0 scale-100"
-                x-transition:leave="transition-all duration-200 ease-in"
+                x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 rotate-0 scale-100"
                 x-transition:leave-end="opacity-0 rotate-90 scale-50"
                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,7 +188,7 @@
      x-transition:leave="transition ease-in duration-150"
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
-     class="fixed inset-0 z-50 lg:hidden">
+     class="fixed inset-0 z-50 no-print lg:hidden">
 
     <!-- Backdrop -->
     <div @click="open = false" class="absolute inset-0 bg-clinic-950/50 backdrop-blur-sm"></div>

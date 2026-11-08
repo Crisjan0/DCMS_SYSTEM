@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Patient extends Model
 {
@@ -39,6 +40,26 @@ class Patient extends Model
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    public function medicalHistory(): HasOne
+    {
+        return $this->hasOne(MedicalHistory::class);
+    }
+
+    public function toothRecords(): HasMany
+    {
+        return $this->hasMany(ToothRecord::class);
+    }
+
+    public function treatmentRecords(): HasMany
+    {
+        return $this->hasMany(TreatmentRecord::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 
     public function fullname(): string

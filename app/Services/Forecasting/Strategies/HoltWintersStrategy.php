@@ -18,13 +18,19 @@ class HoltWintersStrategy implements ForecastStrategy
     private const PERIOD = 7; // weekly seasonality
 
     private const ALPHAS = [0.1, 0.15, 0.2, 0.3, 0.4, 0.5];
+
     private const BETAS = [0.01, 0.03, 0.05, 0.1];
+
     private const GAMMAS = [0.05, 0.1, 0.15, 0.2, 0.3];
 
     private array $values = [];
+
     private float $level = 0.0;
+
     private float $trend = 0.0;
+
     private array $season = [];
+
     private float $sigma = 0.0;
 
     public function name(): string
@@ -81,7 +87,7 @@ class HoltWintersStrategy implements ForecastStrategy
             }
         }
 
-        [$this->level, $this->trend, $this->season,, ,] = $bestParams;
+        [$this->level, $this->trend, $this->season] = $bestParams;
         $this->sigma = sqrt(max(0.0, $bestSse / max(1, $n)));
     }
 
@@ -108,8 +114,8 @@ class HoltWintersStrategy implements ForecastStrategy
     }
 
     /**
-     * @param array<float> $values
-     * @param array<float> $season
+     * @param  array<float>  $values
+     * @param  array<float>  $season
      * @return array{0: float, 1: float, 2: array<float>, 3: float} final level, trend, season, SSE
      */
     private function train(

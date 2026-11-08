@@ -170,12 +170,16 @@
                                         🕐 {{ $appointment->scheduled_time }}
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        <form action="{{ route('staff.appointments.cancel', $appointment) }}" method="POST"
-                                              onsubmit="return confirm('Cancel this appointment for {{ $appointment->patient?->fullname() }}?');">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="text-red-600 hover:text-red-800 font-medium">Cancel</button>
-                                        </form>
+                                        <div class="flex items-center justify-end gap-4">
+                                            <a href="{{ route('staff.appointments.reschedule.form', $appointment) }}"
+                                               class="text-clinic-700 hover:text-clinic-900 font-medium">Reschedule</a>
+                                            <form action="{{ route('staff.appointments.cancel', $appointment) }}" method="POST"
+                                                  onsubmit="return confirm('Cancel this appointment for {{ $appointment->patient?->fullname() }}?');">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="text-red-600 hover:text-red-800 font-medium">Cancel</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -230,7 +234,11 @@
                                     </div>
                                 </div>
 
-                                <div class="px-4 pb-4">
+                                <div class="px-4 pb-4 space-y-2">
+                                    <a href="{{ route('staff.appointments.reschedule.form', $appointment) }}"
+                                       class="block w-full rounded-full bg-clinic-50 px-4 py-2.5 text-center text-sm font-semibold text-clinic-700 ring-1 ring-clinic-200 hover:bg-clinic-100 transition">
+                                        Reschedule
+                                    </a>
                                     <form action="{{ route('staff.appointments.cancel', $appointment) }}" method="POST"
                                           onsubmit="return confirm('Cancel this appointment for {{ $appointment->patient?->fullname() }}?');">
                                         @csrf

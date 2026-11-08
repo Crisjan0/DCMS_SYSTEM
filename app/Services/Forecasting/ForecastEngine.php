@@ -19,7 +19,7 @@ class ForecastEngine
     /**
      * Turn a daily historical series into a forecast for the next $horizon days.
      *
-     * @param array<int, array{date: Carbon, value: float}> $rows consecutive daily rows
+     * @param  array<int, array{date: Carbon, value: float}>  $rows  consecutive daily rows
      */
     public function run(
         array $rows,
@@ -135,6 +135,6 @@ class ForecastEngine
     {
         $class = self::ALGORITHMS[$this->algorithm] ?? HoltWintersStrategy::class;
 
-        return new $class();
+        return new $class;
     }
 }

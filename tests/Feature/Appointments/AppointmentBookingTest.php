@@ -79,7 +79,7 @@ class AppointmentBookingTest extends TestCase
         return $date;
     }
 
-    private function bookingPayload(string $date = null, string $time = '10:00'): array
+    private function bookingPayload(?string $date = null, string $time = '10:00'): array
     {
         return [
             'service' => 'Consultation',

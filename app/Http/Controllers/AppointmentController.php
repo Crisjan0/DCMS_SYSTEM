@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Appointment;
 use App\Models\Dentist;
 use App\Models\Patient;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +37,7 @@ class AppointmentController extends Controller
     /**
      * Live slot availability feed for the booking form.
      */
-    public function availability(Request $request): \Illuminate\Http\JsonResponse
+    public function availability(Request $request): JsonResponse
     {
         $request->validate(['date' => ['required', 'date', 'after_or_equal:today']]);
 
@@ -131,6 +133,11 @@ class AppointmentController extends Controller
                 'notes' => $data['notes'] ?? null,
                 'status' => 'pending',
             ]);
+
+            ActivityLog::record(
+                'appointment_booked',
+                ($patient->wasRecentlyCreated ? 'Registered and booked' : 'Booked').' a '.$data['service'].' appointment on '.Carbon::parse($data['scheduled_date'])->format('M d, Y').' at '.$data['scheduled_time'],
+            );
         });
 
         return redirect()
@@ -170,7 +177,138 @@ class AppointmentController extends Controller
 
         $appointment->update(['status' => 'cancelled']);
 
+        ActivityLog::record(
+            'appointment_cancelled',
+            'Cancelled their own '.$appointment->service.' visit on '.$appointment->scheduled_date->format('M d, Y'),
+            $appointment,
+        );
+
         return back()->with('success', 'Appointment cancelled.');
+    }
+
+    /**
+     * Self-service reschedule screen for one of the patient's upcoming visits.
+     */
+    public function rescheduleForm(Request $request, Appointment $appointment): View|RedirectResponse
+    {
+        abort_unless($request->user()->patient?->id === $appointment->patient_id, 403);
+
+        if (! $this->isReschedulable($appointment)) {
+            return redirect()
+                ->route('appointments.index')
+                ->with('error', 'Only upcoming pending or confirmed appointments can be rescheduled.');
+        }
+
+        return view('appointments.reschedule', [
+            'appointment' => $appointment->load('dentist.user'),
+            'timeSlots' => Appointment::timeSlots(),
+        ]);
+    }
+
+    /**
+     * Move one of the patient's own upcoming visits to a new slot.
+     * Capacity, Sunday closure, and double-booking are re-validated.
+     */
+    public function reschedule(Request $request, Appointment $appointment): RedirectResponse
+    {
+        abort_unless($request->user()->patient?->id === $appointment->patient_id, 403);
+
+        if (! $this->isReschedulable($appointment)) {
+            return redirect()
+                ->route('appointments.index')
+                ->with('error', 'Only upcoming pending or confirmed appointments can be rescheduled.');
+        }
+
+        $data = $request->validate([
+            'scheduled_date' => ['required', 'date', 'after_or_equal:today'],
+            'scheduled_time' => ['required', Rule::in(Appointment::timeSlots())],
+        ]);
+
+        $errors = $this->validateRescheduledSlot($data, $appointment);
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        $date = Carbon::parse($data['scheduled_date'])->startOfDay();
+        $from = $appointment->scheduled_date->format('M d, Y').' '.$appointment->scheduled_time;
+
+        $appointment->update([
+            'scheduled_date' => $date->toDateString(),
+            'scheduled_time' => $data['scheduled_time'].':00',
+        ]);
+
+        ActivityLog::record(
+            'appointment_rescheduled',
+            'Moved their own '.$appointment->service.' visit from '.$from.' to '.$date->format('M d, Y').' at '.$data['scheduled_time'],
+            $appointment,
+        );
+
+        return redirect()
+            ->route('appointments.index')
+            ->with('success', 'Appointment moved to '.$date->format('M d, Y').' at '.$data['scheduled_time'].', pending/confirmed status unchanged.');
+    }
+
+    private function isReschedulable(Appointment $appointment): bool
+    {
+        return in_array($appointment->status, ['pending', 'confirmed'], true)
+            && $appointment->scheduled_date->greaterThanOrEqualTo(today());
+    }
+
+    /**
+     * Slot-level checks for moving an appointment: Sunday closure, past
+     * slots, clinic-wide capacity, and the patient's own double-booking.
+     *
+     * @param  array{scheduled_date: string, scheduled_time: string}  $data
+     * @return array<string, string>
+     */
+    private function validateRescheduledSlot(array $data, Appointment $appointment): array
+    {
+        $date = Carbon::parse($data['scheduled_date'])->startOfDay();
+        $errors = [];
+
+        if ($date->dayOfWeek === Carbon::SUNDAY) {
+            $errors['scheduled_date'] = 'The clinic is closed on Sundays, please pick another date.';
+
+            return $errors;
+        }
+
+        if ($date->isSameDay(now()) && $data['scheduled_time'] <= now()->format('H:i')) {
+            $errors['scheduled_time'] = 'This time slot has already passed — pick a later one.';
+
+            return $errors;
+        }
+
+        $dentistCount = Dentist::count();
+
+        if ($dentistCount === 0) {
+            $errors['scheduled_time'] = 'No dentists are registered yet. Please try again later.';
+
+            return $errors;
+        }
+
+        $bookedCount = Appointment::query()
+            ->where('id', '!=', $appointment->id)
+            ->conflictingAt($date->toDateString(), $data['scheduled_time'])
+            ->count();
+
+        if ($bookedCount >= $dentistCount) {
+            $errors['scheduled_time'] = 'This time slot is fully booked — please pick another date or time.';
+
+            return $errors;
+        }
+
+        $hasOwnConflict = Appointment::query()
+            ->where('id', '!=', $appointment->id)
+            ->where('patient_id', $appointment->patient_id)
+            ->conflictingAt($date->toDateString(), $data['scheduled_time'])
+            ->exists();
+
+        if ($hasOwnConflict) {
+            $errors['scheduled_time'] = 'You already have another appointment at this time slot.';
+        }
+
+        return $errors;
     }
 
     private function validateSlot(array $data): array

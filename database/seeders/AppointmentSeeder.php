@@ -116,7 +116,7 @@ class AppointmentSeeder extends Seeder
     }
 
     /**
-     * @param array<int, array{0: string, 1: int}> $weights
+     * @param  array<int, array{0: string, 1: int}>  $weights
      */
     private function weightedPick(array $weights): string
     {
