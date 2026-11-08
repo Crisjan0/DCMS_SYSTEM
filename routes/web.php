@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DentistController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Dashboard\ForecastController;
+use App\Http\Controllers\Dentist\ScheduleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PatientProfileController;
 use App\Http\Controllers\Staff\StaffAppointmentController;
@@ -33,6 +34,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('appointments.store');
     Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])
         ->name('appointments.cancel');
+});
+
+// Dentist personal schedule (users linked to a dentist profile)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/schedule', [ScheduleController::class, 'index'])
+        ->name('dentist.schedule');
 });
 
 // Staff appointment management (staff + admin)

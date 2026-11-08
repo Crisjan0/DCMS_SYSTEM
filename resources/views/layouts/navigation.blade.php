@@ -17,7 +17,16 @@
             'active' => request()->routeIs('staff.appointments.*'),
             'icon' => 'calendar',
         ];
-    } else {
+    }
+
+    if (Auth::user()->dentist) {
+        $navItems[] = [
+            'label' => __('My Schedule'),
+            'href' => route('dentist.schedule'),
+            'active' => request()->routeIs('dentist.schedule'),
+            'icon' => 'calendar',
+        ];
+    } elseif (! Auth::user()->hasRole('staff', 'admin')) {
         $navItems[] = [
             'label' => __('Book Appointment'),
             'href' => route('appointments.create'),

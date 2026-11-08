@@ -28,12 +28,16 @@ class ProfileTest extends TestCase
     {
         $user = User::factory()->create();
 
+        // Birthday falls 3 days after today → completed age must show as a
+        // whole number (29), not the raw fraction (29.99…).
+        $dob = now()->subYears(30)->addDays(3)->toDateString();
+
         Patient::create([
             'user_id' => $user->id,
             'lastname' => 'Reyes',
             'firstname' => 'Ana',
             'middlename' => 'B.',
-            'date_of_birth' => '1990-01-01',
+            'date_of_birth' => $dob,
             'mobile_number' => '09171234567',
             'gender' => 'female',
             'civil_status' => 'single',
@@ -48,7 +52,8 @@ class ProfileTest extends TestCase
             ->assertSee('View Personal Information')
             ->assertSee('Ana B. Reyes')
             ->assertSee('09171234567')
-            ->assertSee('Cebu City');
+            ->assertSee('Cebu City')
+            ->assertSee('29 yrs old');
     }
 
     public function test_personal_information_section_handles_accounts_without_patient_record(): void

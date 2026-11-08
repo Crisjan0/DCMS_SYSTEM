@@ -40,6 +40,7 @@ class Dentist extends Model
 
     public function fullname(): string
     {
-        return trim($this->firstname.' '.$this->middlename.' '.$this->lastname);
+        // Collapse double spaces that appear when middlename is null.
+        return trim(preg_replace('/\s+/', ' ', $this->firstname.' '.$this->middlename.' '.$this->lastname));
     }
 }

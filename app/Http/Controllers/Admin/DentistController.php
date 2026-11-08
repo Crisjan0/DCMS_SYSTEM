@@ -18,7 +18,13 @@ class DentistController extends Controller
     public function index(): View
     {
         return view('admin.dentists.index', [
-            'dentists' => Dentist::with('user')->orderBy('lastname')->paginate(10),
+            'dentists' => Dentist::with('user')
+                ->withCount(['appointments as upcoming_count' => function ($query) {
+                    $query->where('status', 'confirmed')
+                        ->whereDate('scheduled_date', '>=', today()->toDateString());
+                }])
+                ->orderBy('lastname')
+                ->paginate(10),
         ]);
     }
 

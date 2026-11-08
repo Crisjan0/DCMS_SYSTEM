@@ -87,7 +87,7 @@
                         <div class="flex items-start justify-between gap-3">
                             <span class="text-slate-400 shrink-0">Date of birth</span>
                             <span class="text-slate-700 text-right">
-                                {{ $patient->date_of_birth ? $patient->date_of_birth->format('M d, Y').' ('.$patient->date_of_birth->diffInYears(now()).' yrs old)' : '—' }}
+                                {{ $patient->date_of_birth ? $patient->date_of_birth->format('M d, Y').' ('.((int) $patient->date_of_birth->diffInYears(now())).' yrs old)' : '—' }}
                             </span>
                         </div>
 

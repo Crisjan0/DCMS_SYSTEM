@@ -32,6 +32,7 @@
                                 <th class="px-6 py-3">License No.</th>
                                 <th class="px-6 py-3">Mobile</th>
                                 <th class="px-6 py-3">Linked Account</th>
+                                <th class="px-6 py-3">Assigned</th>
                                 <th class="px-6 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -56,6 +57,11 @@
                                             </span>
                                         @endif
                                     </td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-clinic-200 bg-clinic-50 text-clinic-700">
+                                            👥 {{ $dentist->upcoming_count }} upcoming
+                                        </span>
+                                    </td>
                                     <td class="px-6 py-4 text-right">
                                         <a href="{{ route('admin.dentists.edit', $dentist) }}" class="text-clinic-600 hover:text-clinic-800 font-medium">Edit</a>
 
@@ -69,7 +75,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-6 py-10 text-center text-slate-400">
+                                    <td colspan="7" class="px-6 py-10 text-center text-slate-400">
                                         No dentists yet. Click <span class="font-medium">+ Add Dentist</span> to create one.
                                     </td>
                                 </tr>
@@ -128,6 +134,13 @@
                                     <div class="flex items-center justify-between gap-3">
                                         <span class="text-slate-400">Specialty</span>
                                         <span class="text-slate-600">{{ $dentist->specialty ?? '—' }}</span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span class="text-slate-400">Upcoming patients</span>
+                                        <span class="rounded-full border border-clinic-200 bg-clinic-50 px-2 py-0.5 text-xs font-medium text-clinic-700">
+                                            👥 {{ $dentist->upcoming_count }} upcoming
+                                        </span>
                                     </div>
 
                                     <div class="flex items-center justify-between gap-3">
