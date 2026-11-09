@@ -14,6 +14,8 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        @livewireStyles
     </head>
     <body class="relative min-h-screen bg-clinic-50 font-sans text-slate-800 antialiased">
         <!-- Decorative background (matches the welcome page hero) -->
@@ -47,6 +49,13 @@
                     &copy; {{ date('Y') }} Sombilon-Sabuga Dental Clinic. All rights reserved.
                 </footer>
             </div>
+
+            <!-- Global toasts (session flash + live component events) -->
+            @auth
+                <livewire:notifications-toast />
+            @endauth
         </div>
+
+        @livewireScripts
     </body>
 </html>

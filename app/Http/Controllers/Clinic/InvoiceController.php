@@ -9,6 +9,8 @@ use App\Models\Invoice;
 use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\TreatmentRecord;
+use App\Notifications\NotificationType;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +19,8 @@ use Illuminate\View\View;
 
 class InvoiceController extends Controller
 {
+    public function __construct(private readonly NotificationService $notifications) {}
+
     /**
      * Clinic-wide invoice ledger with collection stats (staff + admin).
      */
@@ -183,6 +187,14 @@ class InvoiceController extends Controller
             return $invoice->load('patient.user');
         });
 
+        $this->notifications->toPatient(
+            $invoice->patient,
+            NotificationType::INVOICE_CREATED,
+            'Invoice '.$invoice->invoice_no.' issued',
+            'An invoice of ₱'.number_format((float) $invoice->total, 2).' was issued under your account.',
+            route('clinic.invoices.show', $invoice, absolute: false),
+        );
+
         return redirect()
             ->route('clinic.invoices.show', $invoice)
             ->with('success', 'Invoice '.$invoice->invoice_no.' created for '.$patient->fullname().'.');
@@ -227,6 +239,14 @@ class InvoiceController extends Controller
             'invoice_voided',
             'Voided invoice '.$invoice->invoice_no.' ('.$invoice->patient?->fullname().')',
             $invoice,
+        );
+
+        $this->notifications->toPatient(
+            $invoice->patient,
+            NotificationType::INVOICE_VOIDED,
+            'Invoice '.$invoice->invoice_no.' voided',
+            'The clinic voided the ₱'.number_format((float) $invoice->total, 2).' invoice. You no longer owe this balance.',
+            route('clinic.invoices.show', $invoice, absolute: false),
         );
 
         return redirect()

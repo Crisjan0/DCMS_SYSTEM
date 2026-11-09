@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Notifications\NotificationType;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class PaymentController extends Controller
 {
+    public function __construct(private readonly NotificationService $notifications) {}
+
     /**
      * Record a payment against an invoice and refresh its balance/status.
      */
@@ -45,6 +49,21 @@ class PaymentController extends Controller
             'payment_recorded',
             'Recorded a '.number_format((float) $data['amount'], 2).' '.$data['method'].' payment for '.$invoice->invoice_no.' ('.$invoice->patient?->fullname().')',
             $invoice,
+        );
+
+        $this->notifications->toPatient(
+            $invoice->patient,
+            NotificationType::PAYMENT_RECORDED,
+            'Payment received',
+            'Your ₱'.number_format((float) $data['amount'], 2).' '.$data['method'].' payment for invoice '.$invoice->invoice_no.' was recorded. Remaining balance: ₱'.number_format($invoice->balance(), 2).'.',
+            route('clinic.invoices.show', $invoice, absolute: false),
+        );
+
+        $this->notifications->toAdmins(
+            NotificationType::PAYMENT_RECORDED,
+            'Payment recorded',
+            '₱'.number_format((float) $data['amount'], 2).' '.$data['method'].' payment recorded for '.$invoice->patient?->fullname()."'s invoice ".$invoice->invoice_no.'.',
+            route('clinic.invoices.show', $invoice, absolute: false),
         );
 
         return redirect()

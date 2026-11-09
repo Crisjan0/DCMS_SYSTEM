@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Appointment;
 use App\Models\Dentist;
+use App\Notifications\NotificationType;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +17,8 @@ use Illuminate\View\View;
 
 class StaffAppointmentController extends Controller
 {
+    public function __construct(private readonly NotificationService $notifications) {}
+
     /**
      * Pending requests (waiting for dentist assignment) + upcoming confirmed schedule.
      */
@@ -113,6 +117,24 @@ class StaffAppointmentController extends Controller
             );
         });
 
+        $when = $appointment->scheduled_date->format('M d, Y').' at '.$appointment->scheduled_time;
+
+        $this->notifications->toDentist(
+            $dentist,
+            NotificationType::APPOINTMENT_ASSIGNED,
+            'New appointment assigned to you',
+            'You have '.$appointment->patient?->fullname()."'s ".$appointment->service.' visit on '.$when.'.',
+            route('dentist.schedule', absolute: false),
+        );
+
+        $this->notifications->toPatient(
+            $appointment->patient,
+            NotificationType::APPOINTMENT_CONFIRMED,
+            'Appointment confirmed',
+            'Dr. '.$dentist->fullname().' will handle your '.$appointment->service.' visit on '.$when.'.',
+            route('appointments.index', absolute: false),
+        );
+
         return redirect()
             ->route('staff.appointments.index')
             ->with('success', 'Assigned Dr. '.$dentist->fullname().' — appointment confirmed.');
@@ -202,6 +224,24 @@ class StaffAppointmentController extends Controller
             $appointment,
         );
 
+        $to = $date->format('M d, Y').' at '.$time;
+
+        $this->notifications->toPatient(
+            $appointment->patient,
+            NotificationType::APPOINTMENT_RESCHEDULED,
+            'Visit rescheduled',
+            'Your '.$appointment->service.' visit moved from '.$from.' to '.$to.'.',
+            route('appointments.index', absolute: false),
+        );
+
+        $this->notifications->toDentist(
+            $appointment->dentist,
+            NotificationType::APPOINTMENT_RESCHEDULED,
+            'Patient visit rescheduled',
+            $appointment->patient?->fullname()."'s ".$appointment->service.' visit moved from '.$from.' to '.$to.'.',
+            route('dentist.schedule', absolute: false),
+        );
+
         return redirect()
             ->route('staff.appointments.index')
             ->with('success', 'Appointment moved to '.$date->format('M d, Y').' at '.$time.'.');
@@ -228,6 +268,24 @@ class StaffAppointmentController extends Controller
             'appointment_cancelled',
             'Cancelled '.$appointment->patient?->fullname()."'s ".$appointment->service.' visit on '.$appointment->scheduled_date->format('M d, Y'),
             $appointment,
+        );
+
+        $when = $appointment->scheduled_date->format('M d, Y').' at '.$appointment->scheduled_time;
+
+        $this->notifications->toPatient(
+            $appointment->patient,
+            NotificationType::APPOINTMENT_CANCELLED,
+            'Appointment cancelled',
+            'The clinic cancelled your '.$appointment->service.' visit on '.$when.'. You may rebook anytime.',
+            route('appointments.index', absolute: false),
+        );
+
+        $this->notifications->toDentist(
+            $appointment->dentist,
+            NotificationType::APPOINTMENT_CANCELLED,
+            'Visit cancelled',
+            $appointment->patient?->fullname()."'s ".$appointment->service.' visit on '.$when.' has been cancelled.',
+            route('dentist.schedule', absolute: false),
         );
 
         return back()->with('success', 'Appointment cancelled.');

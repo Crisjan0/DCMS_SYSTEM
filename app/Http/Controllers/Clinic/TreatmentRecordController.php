@@ -8,6 +8,8 @@ use App\Models\Dentist;
 use App\Models\Patient;
 use App\Models\ToothRecord;
 use App\Models\TreatmentRecord;
+use App\Notifications\NotificationType;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +18,8 @@ use Illuminate\View\View;
 
 class TreatmentRecordController extends Controller
 {
+    public function __construct(private readonly NotificationService $notifications) {}
+
     /**
      * Chart a treatment for a patient, optionally from an existing visit.
      */
@@ -72,6 +76,14 @@ class TreatmentRecordController extends Controller
                 'treatment_charted',
                 'Charted '.$data['procedure'].($data['tooth_number'] ? ' on tooth '.$data['tooth_number'] : '').' for '.$patient->fullname(),
                 $record,
+            );
+
+            $this->notifications->toPatient(
+                $patient,
+                NotificationType::TREATMENT_ADDED,
+                'Treatment record added',
+                $data['procedure'].($data['tooth_number'] ? ' (tooth '.$data['tooth_number'].')' : '').' was charted on your health record.',
+                route('my-record.index', absolute: false),
             );
         });
 
@@ -130,6 +142,14 @@ class TreatmentRecordController extends Controller
                 'treatment_updated',
                 'Updated the '.$data['procedure'].' record of '.$treatment->patient->fullname(),
                 $treatment,
+            );
+
+            $this->notifications->toPatient(
+                $treatment->patient,
+                NotificationType::TREATMENT_UPDATED,
+                'Treatment record updated',
+                'The '.$data['procedure'].' record in your health file was updated by the clinic.',
+                route('my-record.index', absolute: false),
             );
         });
 

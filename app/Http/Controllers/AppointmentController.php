@@ -6,6 +6,8 @@ use App\Models\ActivityLog;
 use App\Models\Appointment;
 use App\Models\Dentist;
 use App\Models\Patient;
+use App\Notifications\NotificationType;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -17,6 +19,8 @@ use Illuminate\View\View;
 
 class AppointmentController extends Controller
 {
+    public function __construct(private readonly NotificationService $notifications) {}
+
     /**
      * Show the booking form. Includes a patient-profile section
      * when the logged-in user doesn't have one yet.
@@ -140,6 +144,15 @@ class AppointmentController extends Controller
             );
         });
 
+        $when = Carbon::parse($data['scheduled_date'])->format('M d, Y').' at '.$data['scheduled_time'];
+
+        $this->notifications->toClinic(
+            NotificationType::APPOINTMENT_BOOKED,
+            'New appointment request',
+            $request->user()->name.' requested a '.$data['service'].' visit on '.$when.'.',
+            route('staff.appointments.index', absolute: false),
+        );
+
         return redirect()
             ->route('appointments.index')
             ->with('success', 'Appointment request submitted! The staff will assign an available dentist.');
@@ -181,6 +194,23 @@ class AppointmentController extends Controller
             'appointment_cancelled',
             'Cancelled their own '.$appointment->service.' visit on '.$appointment->scheduled_date->format('M d, Y'),
             $appointment,
+        );
+
+        $when = $appointment->scheduled_date->format('M d, Y').' at '.$appointment->scheduled_time;
+
+        $this->notifications->toClinic(
+            NotificationType::APPOINTMENT_CANCELLED,
+            'Appointment cancelled',
+            $request->user()->name.' cancelled their '.$appointment->service.' visit on '.$when.'.',
+            route('staff.appointments.index', absolute: false),
+        );
+
+        $this->notifications->toDentist(
+            $appointment->dentist,
+            NotificationType::APPOINTMENT_CANCELLED,
+            'Visit cancelled by patient',
+            $request->user()->name.' cancelled the '.$appointment->service.' visit on '.$when.'.',
+            route('dentist.schedule', absolute: false),
         );
 
         return back()->with('success', 'Appointment cancelled.');
@@ -242,6 +272,23 @@ class AppointmentController extends Controller
             'appointment_rescheduled',
             'Moved their own '.$appointment->service.' visit from '.$from.' to '.$date->format('M d, Y').' at '.$data['scheduled_time'],
             $appointment,
+        );
+
+        $to = $date->format('M d, Y').' at '.$data['scheduled_time'];
+
+        $this->notifications->toClinic(
+            NotificationType::APPOINTMENT_RESCHEDULED,
+            'Appointment rescheduled',
+            $request->user()->name.' moved their '.$appointment->service.' visit to '.$to.'.',
+            route('staff.appointments.index', absolute: false),
+        );
+
+        $this->notifications->toDentist(
+            $appointment->dentist,
+            NotificationType::APPOINTMENT_RESCHEDULED,
+            'Visit rescheduled',
+            $request->user()->name.' moved the '.$appointment->service.' visit to '.$to.'.',
+            route('dentist.schedule', absolute: false),
         );
 
         return redirect()

@@ -35,6 +35,13 @@
             'active' => request()->routeIs('clinic.invoices.*'),
             'icon' => 'invoice',
         ];
+
+        $navItems[] = [
+            'label' => __('Forecast'),
+            'href' => route('forecast.index'),
+            'active' => request()->routeIs('forecast.*'),
+            'icon' => 'chart',
+        ];
     }
 
     if (Auth::user()->dentist) {
@@ -118,6 +125,9 @@
             </a>
         @endforeach
     </div>
+
+    <!-- Notification bell (Livewire: live badge + dropdown) -->
+    <livewire:notifications-bell />
 
     <!-- User block -->
     <div class="border-t border-white/10 p-4">
@@ -227,6 +237,9 @@
                 </a>
             @endforeach
         </div>
+
+        <!-- Notification bell (Livewire: live badge + dropdown) -->
+        <livewire:notifications-bell />
 
         <!-- User block -->
         <div class="border-t border-white/10 p-4">

@@ -11,7 +11,9 @@ use App\Http\Controllers\Clinic\TreatmentRecordController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\FlowController;
 use App\Http\Controllers\Dashboard\ForecastController;
+use App\Http\Controllers\Dashboard\ForecastPageController;
 use App\Http\Controllers\Dentist\ScheduleController;
+use App\Livewire\NotificationsIndex;
 use App\Http\Controllers\Patient\MyInvoiceController;
 use App\Http\Controllers\Patient\MyRecordController;
 use App\Http\Controllers\PatientProfileController;
@@ -31,6 +33,14 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::get('/dashboard/forecast', ForecastController::class)
     ->middleware(['auth', 'verified', 'role:staff,admin,dentist'])
     ->name('dashboard.forecast');
+
+// Standalone forecast page + on-demand Regenerate (staff/admin)
+Route::middleware(['auth', 'verified', 'role:staff,admin'])->group(function () {
+    Route::get('/forecast', [ForecastPageController::class, 'index'])
+        ->name('forecast.index');
+    Route::post('/forecast/regenerate', [ForecastPageController::class, 'regenerate'])
+        ->name('forecast.regenerate');
+});
 
 // Real-time patient-flow feed for the admin dashboard (auto-refreshed).
 Route::get('/dashboard/flow', FlowController::class)
@@ -152,6 +162,10 @@ Route::middleware(['auth', 'verified', 'admin'])
     });
 
 Route::middleware('auth')->group(function () {
+    // Notification center (Livewire)
+    Route::livewire('/notifications', NotificationsIndex::class)
+        ->name('notifications.index');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile/patient', [PatientProfileController::class, 'update'])->name('profile.patient.update');

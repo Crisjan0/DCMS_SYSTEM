@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Patient;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\MedicalHistory;
+use App\Notifications\NotificationType;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +14,8 @@ use Illuminate\View\View;
 
 class MyRecordController extends Controller
 {
+    public function __construct(private readonly NotificationService $notifications) {}
+
     /**
      * The patient's self-service health record: medical history form,
      * read-only tooth chart, and their treatment timeline.
@@ -76,6 +80,13 @@ class MyRecordController extends Controller
                 $patient,
             );
         });
+
+        $this->notifications->toClinic(
+            NotificationType::MEDICAL_HISTORY_UPDATED,
+            'Health declaration updated',
+            $patient->fullname().' self-declared and updated their medical history.',
+            route('clinic.patients.show', $patient, absolute: false),
+        );
 
         return redirect()
             ->route('my-record.index')

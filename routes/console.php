@@ -10,3 +10,7 @@ Artisan::command('inspire', function () {
 
 // Regenerate clinic forecasts every Monday, 6:00 AM — before the week starts.
 Schedule::command('forecast:generate')->weeklyOn(1, '06:00');
+
+// Day-before appointment reminders, every morning — patients get a
+// notification for tomorrow's confirmed visits (dedupe-key guarded).
+Schedule::command('appointments:remind')->dailyAt('07:00');
