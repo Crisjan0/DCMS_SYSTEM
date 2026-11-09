@@ -153,6 +153,16 @@ class MonitoringTest extends TestCase
         $this->getJson(route('dashboard.flow'))->assertForbidden();
     }
 
+    public function test_forecast_feed_is_forbidden_for_plain_patients(): void
+    {
+        $this->actingAs($this->createPatientUser('Privy Viewer'));
+
+        $this->getJson(route('dashboard.forecast'))->assertForbidden();
+
+        $this->actingAs($this->staffUser());
+        $this->getJson(route('dashboard.forecast'))->assertOk();
+    }
+
     public function test_patient_dashboard_shows_next_visit_and_balance(): void
     {
         $dentistUser = $this->dentistUser();

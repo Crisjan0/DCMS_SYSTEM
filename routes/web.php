@@ -29,7 +29,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 // Forecasting module (JSON feed for the dashboard chart)
 Route::get('/dashboard/forecast', ForecastController::class)
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'role:staff,admin,dentist'])
     ->name('dashboard.forecast');
 
 // Real-time patient-flow feed for the admin dashboard (auto-refreshed).
