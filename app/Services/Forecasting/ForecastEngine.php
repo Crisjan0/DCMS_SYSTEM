@@ -2,6 +2,7 @@
 
 namespace App\Services\Forecasting;
 
+use App\Services\Forecasting\Strategies\ArimaStrategy;
 use App\Services\Forecasting\Strategies\ForecastStrategy;
 use App\Services\Forecasting\Strategies\HoltWintersStrategy;
 use App\Services\Forecasting\Strategies\MovingAverageStrategy;
@@ -10,11 +11,12 @@ use Carbon\Carbon;
 class ForecastEngine
 {
     public const ALGORITHMS = [
+        'arima' => ArimaStrategy::class,
         'holt_winters' => HoltWintersStrategy::class,
         'moving_average' => MovingAverageStrategy::class,
     ];
 
-    public function __construct(private string $algorithm = 'holt_winters') {}
+    public function __construct(private string $algorithm = 'arima') {}
 
     /**
      * Turn a daily historical series into a forecast for the next $horizon days.

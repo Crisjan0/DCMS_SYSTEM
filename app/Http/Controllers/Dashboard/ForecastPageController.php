@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\ForecastRun;
+use App\Services\Forecasting\ForecastEngine;
 use Illuminate\Console\Command;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,10 +14,18 @@ use Illuminate\View\View;
 /**
  * Standalone forecast page: the clinic volume prediction chart
  * (shared partial with the staff dashboard) plus an on-demand
- * Regenerate action for admins/staff.
+ * Regenerate action for admins/staff, with a model selector
+ * (ARIMA / Holt-Winters / Moving Average) for accuracy comparison.
  */
 class ForecastPageController extends Controller
 {
+    /** Human-friendly model names shown to the user. */
+    private const LABELS = [
+        'arima' => 'ARIMA',
+        'holt_winters' => 'Holt-Winters',
+        'moving_average' => 'Moving Average',
+    ];
+
     public function index(): View
     {
         $latestRun = ForecastRun::query()
@@ -27,6 +36,8 @@ class ForecastPageController extends Controller
         return view('forecast.index', [
             'showForecast' => true,
             'latestRun' => $latestRun,
+            'algorithms' => array_keys(ForecastEngine::ALGORITHMS),
+            'labels' => self::LABELS,
         ]);
     }
 
@@ -37,16 +48,24 @@ class ForecastPageController extends Controller
      */
     public function regenerate(Request $request): RedirectResponse
     {
+        $algorithm = (string) $request->input('algorithm', 'arima');
+
+        if (! array_key_exists($algorithm, ForecastEngine::ALGORITHMS)) {
+            $algorithm = 'arima';
+        }
+
         $exitCode = Artisan::call('forecast:generate', [
             '--metric' => 'total_visits',
-            '--algorithm' => 'holt_winters',
+            '--algorithm' => $algorithm,
             '--horizon' => 90,
         ]);
 
+        $label = self::LABELS[$algorithm] ?? $algorithm;
+
         if ($exitCode === Command::SUCCESS) {
-            return back()->with('success', 'Forecast regenerated — the chart now shows the latest prediction.');
+            return back()->with("success", "{$label} forecast regenerated — the chart now shows the latest prediction.");
         }
 
-        return back()->with('error', 'Forecast could not be generated yet — the clinic needs at least 30 days of recorded visit history first.');
+        return back()->with('error', "The {$label} forecast could not be generated yet — the clinic needs at least 30 days of recorded visit history first.");
     }
 }
