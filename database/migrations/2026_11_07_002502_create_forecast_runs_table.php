@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
 
             $table->string('metric')->index();          // total_visits, new_patients, ...
-            $table->string('algorithm');                // holt_winters | moving_average
+            $table->string('algorithm');                // arima | holt_winters
             $table->unsignedInteger('horizon_days');    // how many days ahead
             $table->unsignedInteger('history_days');    // how many days of history were used
             $table->float('mape')->nullable();          // backtest accuracy (lower = better)

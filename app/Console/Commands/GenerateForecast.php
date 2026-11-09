@@ -13,7 +13,7 @@ class GenerateForecast extends Command
 {
     protected $signature = 'forecast:generate
                             {--metric=total_visits : Which series to predict (total_visits, new_patients, no_shows, cancellations)}
-                            {--algorithm=arima : Forecast model (arima, holt_winters, moving_average)}
+                            {--algorithm=arima : Forecast model (arima, holt_winters)}
                             {--horizon=90 : How many days ahead to predict}
                             {--history=3 : How many years of history to learn from}';
 

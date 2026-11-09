@@ -40,8 +40,7 @@
                 var grade = mape == null ? '' : (mape < 15 ? 'good ✔' : mape < 30 ? 'fair' : 'needs tuning');
                 var algorithmLabels = {
                     arima: 'ARIMA',
-                    holt_winters: 'Holt-Winters',
-                    moving_average: 'Moving Average'
+                    holt_winters: 'Holt-Winters'
                 };
                 var algorithmName = algorithmLabels[payload.meta.algorithm] || payload.meta.algorithm.replace(/_/g, ' ');
                 document.getElementById('forecast-accuracy').textContent =

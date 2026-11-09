@@ -54,6 +54,9 @@ class ArimaStrategy implements ForecastStrategy
 
     private bool $degenerate = false;
 
+    /** Forecast ceiling: forecasts never exceed 2× the busiest recorded day (min 5). */
+    private float $cap = INF;
+
     public function name(): string
     {
         return 'arima';
@@ -64,6 +67,7 @@ class ArimaStrategy implements ForecastStrategy
         $this->reset();
 
         $this->values = array_map('floatval', array_values($values));
+        $this->cap = $this->values === [] ? 5.0 : max(5.0, 2.0 * max($this->values));
         $n = count($this->values);
 
         if ($n < self::SEASON * 2) {
@@ -140,7 +144,7 @@ class ArimaStrategy implements ForecastStrategy
             $wFuture[$t] = $wHat;
 
             // ── Inverse seasonal difference: yₜ = wₜ + yₜ₋₇ ──
-            $yHat = max(0.0, $wHat + $this->yAt($t - self::SEASON, $yFuture));
+            $yHat = min($this->cap, max(0.0, $wHat + $this->yAt($t - self::SEASON, $yFuture)));
             $yFuture[$t] = $yHat;
 
             $predictions[] = $yHat;
@@ -171,6 +175,7 @@ class ArimaStrategy implements ForecastStrategy
         $this->orderP = 0;
         $this->orderQ = 0;
         $this->degenerate = false;
+        $this->cap = INF;
     }
 
     /**
@@ -317,6 +322,26 @@ class ArimaStrategy implements ForecastStrategy
 
         if ($coefs === null) {
             return null;
+        }
+
+        // ── Stationarity screen (exact for AR(1)/AR(2)) ──
+        // The AR polynomial must keep its roots inside the unit circle,
+        // otherwise the recursive forecast explodes over long horizons
+        // and the chart (and MAPE) turns into nonsense. Reject instead.
+        if ($p >= 1) {
+            $phi1 = $coefs[1];
+
+            if (abs($phi1) > 0.95) {
+                return null;
+            }
+        }
+
+        if ($p >= 2) {
+            $phi2 = $coefs[2];
+
+            if (abs($phi2) >= 1.0 || $phi1 + $phi2 >= 1.0 || $phi2 - $phi1 >= 1.0) {
+                return null;
+            }
         }
 
         // ── In-sample residuals (keyed by original t) + visitor-space sigma ──

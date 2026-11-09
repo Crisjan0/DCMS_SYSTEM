@@ -15,7 +15,7 @@ use Illuminate\View\View;
  * Standalone forecast page: the clinic volume prediction chart
  * (shared partial with the staff dashboard) plus an on-demand
  * Regenerate action for admins/staff, with a model selector
- * (ARIMA / Holt-Winters / Moving Average) for accuracy comparison.
+ * (ARIMA / Holt-Winters) for accuracy comparison.
  */
 class ForecastPageController extends Controller
 {
@@ -23,7 +23,6 @@ class ForecastPageController extends Controller
     private const LABELS = [
         'arima' => 'ARIMA',
         'holt_winters' => 'Holt-Winters',
-        'moving_average' => 'Moving Average',
     ];
 
     public function index(): View
