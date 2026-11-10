@@ -67,6 +67,14 @@ class PatientController extends Controller
             'patient' => $patient->load('user'),
             'tab' => $tab,
             'medicalHistory' => $patient->medicalHistory,
+            'submissions' => ActivityLog::query()
+                ->with('user')
+                ->where('action', 'medical_history_updated')
+                ->where('subject_type', 'Patient')
+                ->where('subject_id', $patient->id)
+                ->orderByDesc('id')
+                ->limit(10)
+                ->get(),
             'toothRecords' => $patient->toothRecords->keyBy('tooth_number'),
             'treatments' => $patient->treatmentRecords()
                 ->with(['dentist.user', 'invoiceItems'])

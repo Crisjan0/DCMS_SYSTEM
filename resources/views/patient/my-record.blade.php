@@ -22,6 +22,9 @@
                     'medicalHistory' => $medicalHistory,
                 ])
 
+                <!-- Submission history -->
+                @include('clinic.patients.partials.medical-submissions', ['submissions' => $submissions])
+
                 <!-- Read-only odontogram -->
                 @include('clinic.patients.partials.tooth-chart', [
                     'patient' => $patient,

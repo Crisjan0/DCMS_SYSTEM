@@ -27,6 +27,16 @@ class MyRecordController extends Controller
         return view('patient.my-record', [
             'patient' => $patient,
             'medicalHistory' => $patient?->medicalHistory,
+            'submissions' => $patient
+                ? ActivityLog::query()
+                    ->with('user')
+                    ->where('action', 'medical_history_updated')
+                    ->where('subject_type', 'Patient')
+                    ->where('subject_id', $patient->id)
+                    ->orderByDesc('id')
+                    ->limit(10)
+                    ->get()
+                : collect(),
             'toothRecords' => $patient
                 ? $patient->toothRecords()->get()->keyBy('tooth_number')
                 : collect(),
