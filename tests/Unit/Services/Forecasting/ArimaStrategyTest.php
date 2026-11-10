@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services\Forecasting;
 
+use App\Services\Forecasting\ForecastEngine;
 use App\Services\Forecasting\Strategies\ArimaStrategy;
 use Tests\TestCase;
 
@@ -115,6 +116,56 @@ class ArimaStrategyTest extends TestCase
         foreach ($forecast as $value) {
             $this->assertGreaterThanOrEqual(0.0, $value);
             $this->assertLessThanOrEqual(30.0, $value);
+        }
+    }
+
+    public function test_forecast_is_clamped_to_a_sane_ceiling(): void
+    {
+        // Mostly quiet days with an occasional busier day — 2 × max(9) = 18.
+        $series = [];
+
+        for ($t = 0; $t < 90; $t++) {
+            $series[] = $t % 21 === 0 ? 9.0 : 2.0;
+        }
+
+        $strategy = new ArimaStrategy;
+        $strategy->fit($series);
+
+        foreach ($strategy->forecast(60) as $value) {
+            $this->assertLessThanOrEqual(18.0, $value);
+            $this->assertGreaterThanOrEqual(0.0, $value);
+        }
+    }
+
+    /**
+     * Regression: sparse clinic logs (long zero stretches + sporadic few
+     * visits) must never produce an explosive ARIMA → a 5×10¹⁶% MAPE badge.
+     */
+    public function test_mape_backtest_stays_sane_on_sparse_clinic_data(): void
+    {
+        $rows = [];
+        $start = now()->subDays(90)->startOfDay();
+
+        for ($i = 0; $i < 90; $i++) {
+            $value = 0.0;
+
+            if (in_array($i, [7, 15, 16, 30, 44, 45, 61, 75], true)) {
+                $value = ($i + 1) % 4 + 1; // 1..4 sporadic visits
+            } elseif ($i % 7 === 0) {
+                $value = 1.0; // occasional walk-in day
+            }
+
+            $rows[] = ['date' => $start->copy()->addDays($i), 'value' => $value];
+        }
+
+        $result = (new ForecastEngine('arima'))->run($rows, 30);
+
+        $this->assertNotNull($result->mape);
+        $this->assertLessThan(2000.0, $result->mape);
+
+        foreach ($result->points as $point) {
+            $this->assertLessThanOrEqual(8.0, $point['predicted']); // cap = max(5, 2×4)
+            $this->assertGreaterThanOrEqual(0.0, $point['predicted']);
         }
     }
 }

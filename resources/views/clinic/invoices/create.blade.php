@@ -65,6 +65,7 @@
                             <select
                                 name="patient_id"
                                 required
+                                @change="$event.target.value && (window.location = '{{ route('clinic.invoices.create') }}?patient=' + $event.target.value)"
                                 class="mt-1.5 block w-full rounded-2xl border border-clinic-950/10 bg-white text-slate-900 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25">
                                 <option value="">— Select patient —</option>
                                 @foreach ($patients as $person)
@@ -73,6 +74,7 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <p class="mt-1.5 text-xs text-slate-400">Selecting a patient loads their unbilled treatment records.</p>
                         @endif
                         <x-input-error :messages="$errors->get('patient_id')" class="mt-2" />
                     </div>

@@ -45,7 +45,7 @@
                 var algorithmName = algorithmLabels[payload.meta.algorithm] || payload.meta.algorithm.replace(/_/g, ' ');
                 document.getElementById('forecast-accuracy').textContent =
                     algorithmName +
-                    ' · MAPE ' + (mape == null ? 'n/a' : mape + '%') + (grade ? ' (' + grade + ')' : '');
+                    ' · MAPE ' + (mape == null ? 'n/a' : mape.toFixed(1) + '%') + (grade ? ' (' + grade + ')' : '');
 
                 // ── Quick summary ──
                 var summary = document.getElementById('forecast-summary');
