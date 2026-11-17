@@ -3,11 +3,13 @@
 use App\Http\Controllers\Admin\DentistController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Clinic\AppointmentStatusController;
+use App\Http\Controllers\Clinic\ClinicClosureController as ClosureController;
 use App\Http\Controllers\Clinic\InvoiceController;
 use App\Http\Controllers\Clinic\PatientController;
 use App\Http\Controllers\Clinic\PaymentController;
 use App\Http\Controllers\Clinic\ToothRecordController;
 use App\Http\Controllers\Clinic\TreatmentRecordController;
+use App\Http\Controllers\Clinic\WalkInVisitController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\FlowController;
 use App\Http\Controllers\Dashboard\ForecastController;
@@ -40,6 +42,21 @@ Route::middleware(['auth', 'verified', 'role:staff,admin'])->group(function () {
         ->name('forecast.index');
     Route::post('/forecast/regenerate', [ForecastPageController::class, 'regenerate'])
         ->name('forecast.regenerate');
+
+    // Forecast data-quality tools: closure calendar + walk-in visits
+    Route::get('/clinic/closures', [ClosureController::class, 'index'])
+        ->name('clinic.closures.index');
+    Route::post('/clinic/closures', [ClosureController::class, 'store'])
+        ->name('clinic.closures.store');
+    Route::delete('/clinic/closures/{closure}', [ClosureController::class, 'destroy'])
+        ->name('clinic.closures.destroy');
+
+    Route::get('/clinic/walk-ins', [WalkInVisitController::class, 'index'])
+        ->name('clinic.walk-ins.index');
+    Route::post('/clinic/walk-ins', [WalkInVisitController::class, 'store'])
+        ->name('clinic.walk-ins.store');
+    Route::delete('/clinic/walk-ins/{walkIn}', [WalkInVisitController::class, 'destroy'])
+        ->name('clinic.walk-ins.destroy');
 });
 
 // Real-time patient-flow feed for the admin dashboard (auto-refreshed).

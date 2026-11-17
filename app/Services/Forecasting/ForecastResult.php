@@ -39,4 +39,31 @@ final class ForecastResult
     {
         return array_sum(array_column(array_slice($this->points, 0, $days), 'predicted'));
     }
+
+    /**
+     * Force predicted visits to zero on declared clinic-closure dates
+     * (holidays, maintenance) — the clinic simply doesn't operate then.
+     *
+     * @param  list<string>  $closureDates  Y-m-d strings
+     */
+    public function withClosureDaysZeroed(array $closureDates): self
+    {
+        $closureSet = array_flip($closureDates);
+
+        $points = array_map(function (array $point) use ($closureSet) {
+            if (isset($closureSet[$point['date']->toDateString()])) {
+                return [
+                    'date' => $point['date'],
+                    'predicted' => 0.0,
+                    'lower' => 0.0,
+                    'upper' => 0.0,
+                    'is_peak' => false,
+                ];
+            }
+
+            return $point;
+        }, $this->points);
+
+        return new self($this->algorithm, $points, $this->mape, $this->historyDays, $this->horizonDays);
+    }
 }

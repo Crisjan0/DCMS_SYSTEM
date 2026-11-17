@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Appointment;
+use App\Models\ClinicClosure;
 use App\Models\Dentist;
 use App\Models\Patient;
 use App\Notifications\NotificationType;
@@ -49,6 +50,10 @@ class AppointmentController extends Controller
         $capacity = Dentist::count();
 
         if ($date->dayOfWeek === Carbon::SUNDAY) {
+            return response()->json(['closed' => true, 'capacity' => $capacity, 'slots' => []]);
+        }
+
+        if (ClinicClosure::isClosed($date)) {
             return response()->json(['closed' => true, 'capacity' => $capacity, 'slots' => []]);
         }
 
@@ -320,6 +325,15 @@ class AppointmentController extends Controller
             return $errors;
         }
 
+        if (ClinicClosure::isClosed($date)) {
+            $closure = ClinicClosure::where('date', $date->toDateString())->first();
+            $errors['scheduled_date'] = 'The clinic is closed on '.Carbon::parse($date)->format('M d, Y')
+                .($closure?->name ? ' ('.$closure->name.')' : '')
+                .' — please pick another date.';
+
+            return $errors;
+        }
+
         if ($date->isSameDay(now()) && $data['scheduled_time'] <= now()->format('H:i')) {
             $errors['scheduled_time'] = 'This time slot has already passed — pick a later one.';
 
@@ -367,6 +381,11 @@ class AppointmentController extends Controller
             $errors['scheduled_date'] = 'The clinic is closed on Sundays, please pick another date.';
         } elseif ($date->isSameDay(now()) && $data['scheduled_time'] <= now()->format('H:i')) {
             $errors['scheduled_time'] = 'This time slot has already passed — pick a later one.';
+        } elseif (ClinicClosure::isClosed($date)) {
+            $closure = ClinicClosure::where('date', $date->toDateString())->first();
+            $errors['scheduled_date'] = 'The clinic is closed on '.Carbon::parse($date)->format('M d, Y')
+                .($closure?->name ? ' ('.$closure->name.')' : '')
+                .' — please pick another date.';
         } else {
             $dentistCount = Dentist::count();
 

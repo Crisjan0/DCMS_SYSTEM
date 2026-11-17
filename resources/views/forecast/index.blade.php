@@ -48,6 +48,11 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4 pb-6">
         <div class="rounded-2xl bg-white px-5 py-4 text-[13px] text-slate-500 ring-1 ring-clinic-950/5">
             {{ __('Pick a model and press Regenerate to compare accuracy (MAPE). The forecast also re-trains automatically every Monday at 6:00 AM.') }}
+            <span class="block mt-1">
+                {{ __('Improve accuracy:') }}
+                <a href="{{ route('clinic.walk-ins.index') }}" class="font-semibold text-clinic-700 hover:text-clinic-800">🚶 record walk-in visits</a> ·
+                <a href="{{ route('clinic.closures.index') }}" class="font-semibold text-clinic-700 hover:text-clinic-800">📅 declare holidays / closures</a>
+            </span>
             @if ($latestRun)
                 <span class="block mt-1 text-slate-400">
                     {{ __('Latest run') }}: #{{ $latestRun->id }} · {{ $latestRun->algorithm }} · {{ $latestRun->ran_at?->format('M d, Y g:i A') }}

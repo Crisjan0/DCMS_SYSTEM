@@ -9,6 +9,7 @@ class DailyClinicStat extends Model
     protected $fillable = [
         'date',
         'total_visits',
+        'walk_ins',
         'new_patients',
         'no_shows',
         'cancellations',

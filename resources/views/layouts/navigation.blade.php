@@ -39,8 +39,15 @@
         $navItems[] = [
             'label' => __('Forecast'),
             'href' => route('forecast.index'),
-            'active' => request()->routeIs('forecast.*'),
+            'active' => request()->routeIs('forecast.*', 'clinic.walk-ins.*'),
             'icon' => 'chart',
+        ];
+
+        $navItems[] = [
+            'label' => __('Closures'),
+            'href' => route('clinic.closures.index'),
+            'active' => request()->routeIs('clinic.closures.*'),
+            'icon' => 'calendar',
         ];
     }
 

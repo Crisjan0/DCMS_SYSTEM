@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\ClinicClosure;
 use App\Models\ForecastRun;
 use App\Services\Forecasting\ForecastEngine;
 use App\Services\Forecasting\HistoricalDataCollector;
@@ -52,6 +53,19 @@ class GenerateForecast extends Command
         }
 
         $result = (new ForecastEngine($algorithm))->run($series, $horizon);
+
+        // 📅 Closure-aware: predicted visits on declared closure dates
+        // (holidays, maintenance) are forced to zero so the chart and
+        // the next-N-days totals don't promise patients on a closed day.
+        $closureDates = ClinicClosure::datesBetween(
+            $series[count($series) - 1]['date']->copy()->addDay()->toDateString(),
+            $series[count($series) - 1]['date']->copy()->addDays($horizon)->toDateString(),
+        );
+
+        if ($closureDates !== []) {
+            $result = $result->withClosureDaysZeroed($closureDates);
+        }
+
         $this->line("Trained {$result->algorithm} on {$result->historyDays} days of history…");
 
         // ── 3. Persist run + predicted points ──

@@ -26,7 +26,7 @@ class HistoricalDataCollector
             : 'total_visits';
 
         $start = now()->subYears((float) $years)->startOfDay()->toDateString();
-        $end = now()->subDay()->startOfDay();
+        $end = now()->subDay()->endOfDay();
 
         $valueByDate = DailyClinicStat::query()
             ->whereBetween('date', [$start, $end->toDateString()])
