@@ -62,7 +62,7 @@ class ForecastPageController extends Controller
         $label = self::LABELS[$algorithm] ?? $algorithm;
 
         if ($exitCode === Command::SUCCESS) {
-            return back()->with("success", "{$label} forecast regenerated — the chart now shows the latest prediction.");
+            return back()->with('success', "{$label} forecast regenerated — the chart now shows the latest prediction.");
         }
 
         return back()->with('error', "The {$label} forecast could not be generated yet — the clinic needs at least 30 days of recorded visit history first.");

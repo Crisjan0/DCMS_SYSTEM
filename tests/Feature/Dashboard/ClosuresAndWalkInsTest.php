@@ -6,10 +6,8 @@ use App\Models\Appointment;
 use App\Models\ClinicClosure;
 use App\Models\DailyClinicStat;
 use App\Models\Patient;
-use App\Services\Forecasting\StatsAggregator;
 use App\Models\User;
-use App\Models\WalkInVisit;
-use Carbon\Carbon;
+use App\Services\Forecasting\StatsAggregator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -150,7 +148,7 @@ class ClosuresAndWalkInsTest extends TestCase
             'status' => 'completed',
         ]);
 
-        $daysRebuilt = (new StatsAggregator())->rebuild();
+        $daysRebuilt = (new StatsAggregator)->rebuild();
 
         $this->assertSame(1, $daysRebuilt);
 

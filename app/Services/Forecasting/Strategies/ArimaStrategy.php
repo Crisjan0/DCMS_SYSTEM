@@ -266,7 +266,7 @@ class ArimaStrategy implements ForecastStrategy
      * Rows regress zₜ on [1, zₜ₋₁..zₜ₋ₚ, eₜ₋₁..eₜ₋ₒ], where e are the
      * stage-1 bootstrap residuals (available from dense index warmUp).
      *
-     * @param array<int, float> $stageOne
+     * @param  array<int, float>  $stageOne
      * @return array{intercept: float, phi: array<float>, theta: array<float>,
      *               residuals: array<int, float>, aic: float, p: int, q: int,
      *               sigma: float}|null

@@ -15,12 +15,12 @@ use App\Http\Controllers\Dashboard\FlowController;
 use App\Http\Controllers\Dashboard\ForecastController;
 use App\Http\Controllers\Dashboard\ForecastPageController;
 use App\Http\Controllers\Dentist\ScheduleController;
-use App\Livewire\NotificationsIndex;
 use App\Http\Controllers\Patient\MyInvoiceController;
 use App\Http\Controllers\Patient\MyRecordController;
 use App\Http\Controllers\PatientProfileController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Staff\StaffAppointmentController;
+use App\Livewire\NotificationsIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {

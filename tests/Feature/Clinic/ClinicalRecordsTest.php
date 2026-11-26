@@ -206,6 +206,31 @@ class ClinicalRecordsTest extends TestCase
         $this->assertDatabaseHas('activity_logs', ['action' => 'appointment_completed']);
     }
 
+    public function test_treatment_can_be_charted_without_a_tooth_or_linked_visit(): void
+    {
+        $staff = $this->staffUser();
+        $patientUser = $this->createPatientUser('Nora Optional');
+        $dentistUser = $this->createDentistUser('dr.general@dcms.test');
+        $patient = $patientUser->patient;
+
+        $this->actingAs($staff);
+
+        // Both the tooth number and the linked visit are optional in the UI;
+        // omitting them entirely must not raise an undefined-key error.
+        $this->post(route('clinic.patients.treatments.store', $patient), [
+            'dentist_id' => $dentistUser->dentist->id,
+            'treatment_date' => today()->toDateString(),
+            'procedure' => 'Oral Prophylaxis',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('treatment_records', [
+            'patient_id' => $patient->id,
+            'procedure' => 'Oral Prophylaxis',
+            'tooth_number' => null,
+            'appointment_id' => null,
+        ]);
+    }
+
     public function test_future_appointments_cannot_be_marked_completed(): void
     {
         $staff = $this->staffUser();

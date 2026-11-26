@@ -11,23 +11,35 @@ final class NotificationType
 {
     // ── Appointments ─────────────────────────────────────────────
     public const APPOINTMENT_BOOKED = 'appointment.booked';
+
     public const APPOINTMENT_ASSIGNED = 'appointment.assigned';
+
     public const APPOINTMENT_CONFIRMED = 'appointment.confirmed';
+
     public const APPOINTMENT_RESCHEDULED = 'appointment.rescheduled';
+
     public const APPOINTMENT_CANCELLED = 'appointment.cancelled';
+
     public const APPOINTMENT_COMPLETED = 'appointment.completed';
+
     public const APPOINTMENT_NO_SHOW = 'appointment.no_show';
+
     public const APPOINTMENT_REMINDER = 'appointment.reminder';
 
     // ── Billing ──────────────────────────────────────────────────
     public const INVOICE_CREATED = 'invoice.created';
+
     public const INVOICE_VOIDED = 'invoice.voided';
+
     public const PAYMENT_RECORDED = 'payment.recorded';
 
     // ── Patient records ─────────────────────────────────────────
     public const TREATMENT_ADDED = 'treatment.added';
+
     public const TREATMENT_UPDATED = 'treatment.updated';
+
     public const TOOTH_CHART_UPDATED = 'tooth_chart.updated';
+
     public const MEDICAL_HISTORY_UPDATED = 'medical_history.updated';
 
     // ── Clinic-wide messages ────────────────────────────────────

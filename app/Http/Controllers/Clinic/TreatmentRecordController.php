@@ -52,7 +52,7 @@ class TreatmentRecordController extends Controller
     {
         $data = $this->validateTreatment($request);
 
-        $appointment = $data['appointment_id']
+        $appointment = ($data['appointment_id'] ?? null)
             ? $patient->appointments()->findOrFail($data['appointment_id'])
             : null;
 
@@ -72,9 +72,11 @@ class TreatmentRecordController extends Controller
                 );
             }
 
+            $tooth = $data['tooth_number'] ?? null;
+
             ActivityLog::record(
                 'treatment_charted',
-                'Charted '.$data['procedure'].($data['tooth_number'] ? ' on tooth '.$data['tooth_number'] : '').' for '.$patient->fullname(),
+                'Charted '.$data['procedure'].($tooth ? ' on tooth '.$tooth : '').' for '.$patient->fullname(),
                 $record,
             );
 
@@ -82,7 +84,7 @@ class TreatmentRecordController extends Controller
                 $patient,
                 NotificationType::TREATMENT_ADDED,
                 'Treatment record added',
-                $data['procedure'].($data['tooth_number'] ? ' (tooth '.$data['tooth_number'].')' : '').' was charted on your health record.',
+                $data['procedure'].($tooth ? ' (tooth '.$tooth.')' : '').' was charted on your health record.',
                 route('my-record.index', absolute: false),
             );
         });
@@ -119,7 +121,7 @@ class TreatmentRecordController extends Controller
     {
         $data = $this->validateTreatment($request);
 
-        $appointment = $data['appointment_id'] && (int) $data['appointment_id'] !== (int) $treatment->appointment_id
+        $appointment = ($data['appointment_id'] ?? null) && (int) $data['appointment_id'] !== (int) $treatment->appointment_id
             ? $treatment->patient->appointments()->findOrFail($data['appointment_id'])
             : null;
 

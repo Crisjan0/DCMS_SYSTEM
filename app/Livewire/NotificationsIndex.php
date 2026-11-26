@@ -14,8 +14,8 @@ use Livewire\WithPagination;
  */
 class NotificationsIndex extends Component
 {
-    use WithPagination;
     use InteractsWithNotificationPopup;
+    use WithPagination;
 
     /** @var string 'all'|'unread' */
     public string $tab = 'all';
