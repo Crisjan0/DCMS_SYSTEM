@@ -40,6 +40,14 @@ Route::get('/dashboard/forecast', ForecastController::class)
 Route::middleware(['auth', 'verified', 'role:staff,admin'])->group(function () {
     Route::get('/forecast', [ForecastPageController::class, 'index'])
         ->name('forecast.index');
+
+    // Direct visits / stale links to the regenerate URL: bounce back to the
+    // forecast page instead of a 405 "GET not supported" error.
+    Route::get('/forecast/regenerate', function () {
+        return redirect()->route('forecast.index')
+            ->with('info', 'Use the Regenerate button on the forecast page to run a new forecast.');
+    });
+
     Route::post('/forecast/regenerate', [ForecastPageController::class, 'regenerate'])
         ->name('forecast.regenerate');
 

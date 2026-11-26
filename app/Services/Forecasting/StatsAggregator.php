@@ -7,6 +7,7 @@ use App\Models\DailyClinicStat;
 use App\Models\WalkInVisit;
 use Carbon\Carbon;
 use Illuminate\Support\Carbon as SupportsCarbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Rebuilds the daily time series table from raw appointments and walk-ins.
@@ -74,13 +75,36 @@ class StatsAggregator
         $dates = array_unique(array_merge(array_keys($stats), array_keys($newPatients)));
         sort($dates);
 
+        // Build every day's row in memory, then write via two chunked upserts
+        // instead of ~900 updateOrCreate calls. On SQLite every autocommit
+        // write costs ~150ms (journal sync), which made a full rebuild take
+        // 2.5 minutes; batched it finishes in a couple of seconds.
+        $now = now();
+        $rows = [];
+
         foreach ($dates as $date) {
-            DailyClinicStat::updateOrCreate(
-                ['date' => $date],
-                ($stats[$date] ?? ['total_visits' => 0, 'walk_ins' => 0, 'no_shows' => 0, 'cancellations' => 0])
-                    + ['new_patients' => $newPatients[$date] ?? 0]
+            $rows[] = array_merge(
+                $stats[$date] ?? ['total_visits' => 0, 'walk_ins' => 0, 'no_shows' => 0, 'cancellations' => 0],
+                ['new_patients' => $newPatients[$date] ?? 0],
+                [
+                    // Bare Y-m-d string — matches the unique index exactly
+                    // (see the date:Y-m-d cast on DailyClinicStat).
+                    'date' => $date,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ],
             );
         }
+
+        DB::transaction(function () use ($rows) {
+            foreach (array_chunk($rows, 500) as $chunk) {
+                DailyClinicStat::upsert(
+                    $chunk,
+                    ['date'],
+                    ['total_visits', 'walk_ins', 'no_shows', 'cancellations', 'new_patients', 'updated_at'],
+                );
+            }
+        });
 
         return count($dates);
     }

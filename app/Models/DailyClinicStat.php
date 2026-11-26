@@ -17,8 +17,12 @@ class DailyClinicStat extends Model
 
     protected function casts(): array
     {
+        // Serialize as a bare Y-m-d string on write, so the upsert lookup in
+        // StatsAggregator (which binds '2024-01-15') matches the stored row.
+        // The default 'date' cast writes '2024-01-15 00:00:00' on SQLite,
+        // which never matches the lookup → duplicate insert → UNIQUE crash.
         return [
-            'date' => 'date',
+            'date' => 'date:Y-m-d',
         ];
     }
 }
