@@ -5,7 +5,7 @@
         @disabled($disabled)
         type="password"
         :type="show ? 'text' : 'password'"
-        {{ $attributes->merge(['class' => 'rounded-xl border border-slate-200 bg-slate-50/60 text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25 focus:bg-white pr-11']) }}
+        {{ $attributes->merge(['class' => 'rounded-2xl border border-clinic-950/10 bg-white/70 text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-clinic-500 focus:outline-none focus:ring-2 focus:ring-clinic-500/25 focus:bg-white pr-11']) }}
     >
 
     <button

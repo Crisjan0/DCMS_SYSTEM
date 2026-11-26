@@ -1,0 +1,415 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\ActivityLog;
+use App\Models\Appointment;
+use App\Models\ClinicClosure;
+use App\Models\Dentist;
+use App\Models\Patient;
+use App\Notifications\NotificationType;
+use App\Services\NotificationService;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
+
+class AppointmentController extends Controller
+{
+    public function __construct(private readonly NotificationService $notifications) {}
+
+    /**
+     * Show the booking form. Includes a patient-profile section
+     * when the logged-in user doesn't have one yet.
+     */
+    public function create(Request $request): View
+    {
+        [$firstname, $lastname] = $this->splitName($request->user()->name);
+
+        return view('appointments.book', [
+            'services' => Appointment::SERVICES,
+            'timeSlots' => Appointment::timeSlots(),
+            'needsProfile' => $request->user()->patient === null,
+            'firstnameGuess' => $firstname,
+            'lastnameGuess' => $lastname,
+        ]);
+    }
+
+    /**
+     * Live slot availability feed for the booking form.
+     */
+    public function availability(Request $request): JsonResponse
+    {
+        $request->validate(['date' => ['required', 'date', 'after_or_equal:today']]);
+
+        $date = Carbon::parse($request->input('date'))->startOfDay();
+        $capacity = Dentist::count();
+
+        if ($date->dayOfWeek === Carbon::SUNDAY) {
+            return response()->json(['closed' => true, 'capacity' => $capacity, 'slots' => []]);
+        }
+
+        if (ClinicClosure::isClosed($date)) {
+            return response()->json(['closed' => true, 'capacity' => $capacity, 'slots' => []]);
+        }
+
+        $booked = DB::table('appointments')
+            ->whereDate('scheduled_date', $date->toDateString())
+            ->whereNotIn('status', ['cancelled', 'no_show'])
+            ->groupBy('scheduled_time')
+            ->pluck(DB::raw('COUNT(*)'), 'scheduled_time');
+
+        $nowTime = now()->format('H:i');
+
+        $slots = [];
+        foreach (Appointment::timeSlots() as $slot) {
+            $bookedCount = (int) ($booked[$slot.':00'] ?? 0);
+
+            $slots[$slot] = [
+                'booked' => $bookedCount,
+                'capacity' => $capacity,
+                'full' => $bookedCount >= $capacity,
+                'past' => $date->isSameDay(now()) && $slot <= $nowTime,
+            ];
+        }
+
+        return response()->json(['closed' => false, 'capacity' => $capacity, 'slots' => $slots]);
+    }
+
+    /**
+     * Store a new appointment request (status: pending, dentist assigned later by staff).
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'service' => ['required', Rule::in(Appointment::SERVICES)],
+            'scheduled_date' => ['required', 'date', 'after_or_equal:today'],
+            'scheduled_time' => ['required', Rule::in(Appointment::timeSlots())],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $errors = $this->validateSlot($data);
+
+        $patient = $request->user()->patient;
+
+        // First-time registrants complete a quick profile in the same step.
+        $profileData = null;
+        if ($patient === null) {
+            $profileData = $request->validate([
+                'lastname' => ['required', 'string', 'max:255'],
+                'firstname' => ['required', 'string', 'max:255'],
+                'middlename' => ['nullable', 'string', 'max:255'],
+                'date_of_birth' => ['required', 'date', 'before:today'],
+                'mobile_number' => ['required', 'string', 'max:255'],
+                'gender' => ['required', Rule::in(['male', 'female', 'other'])],
+                'civil_status' => ['required', Rule::in(['single', 'married', 'widowed', 'separated', 'divorced'])],
+                'address' => ['required', 'string', 'max:500'],
+                'occupation' => ['nullable', 'string', 'max:255'],
+            ]);
+        } elseif ($errors === []) {
+            // Don't let a patient hold two active bookings in the same slot.
+            $hasOwnConflict = Appointment::where('patient_id', $patient->id)
+                ->conflictingAt(Carbon::parse($data['scheduled_date'])->toDateString(), $data['scheduled_time'])
+                ->exists();
+
+            if ($hasOwnConflict) {
+                $errors['scheduled_time'] = 'You already have an appointment at this time slot.';
+            }
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        DB::transaction(function () use (&$patient, $request, $data, $profileData) {
+            if ($patient === null) {
+                $patient = Patient::create($profileData + [
+                    'user_id' => $request->user()->id,
+                    'patient_type' => 'new',
+                    'profile_picture' => null,
+                    'role' => 'patient',
+                ]);
+            }
+
+            $patient->appointments()->create([
+                'scheduled_date' => $data['scheduled_date'],
+                'scheduled_time' => $data['scheduled_time'].':00',
+                'service' => $data['service'],
+                'notes' => $data['notes'] ?? null,
+                'status' => 'pending',
+            ]);
+
+            ActivityLog::record(
+                'appointment_booked',
+                ($patient->wasRecentlyCreated ? 'Registered and booked' : 'Booked').' a '.$data['service'].' appointment on '.Carbon::parse($data['scheduled_date'])->format('M d, Y').' at '.$data['scheduled_time'],
+            );
+        });
+
+        $when = Carbon::parse($data['scheduled_date'])->format('M d, Y').' at '.$data['scheduled_time'];
+
+        $this->notifications->toClinic(
+            NotificationType::APPOINTMENT_BOOKED,
+            'New appointment request',
+            $request->user()->name.' requested a '.$data['service'].' visit on '.$when.'.',
+            route('staff.appointments.index', absolute: false),
+        );
+
+        return redirect()
+            ->route('appointments.index')
+            ->with('success', 'Appointment request submitted! The staff will assign an available dentist.');
+    }
+
+    /**
+     * The logged-in patient's own appointments.
+     */
+    public function index(Request $request): View
+    {
+        $patient = $request->user()->patient;
+
+        $appointments = $patient
+            ? $patient->appointments()->with('dentist.user')
+                ->orderByDesc('scheduled_date')
+                ->orderByDesc('scheduled_time')
+                ->paginate(10)
+            : Appointment::query()->whereRaw('1 = 0')->paginate(10);
+
+        return view('appointments.index', [
+            'appointments' => $appointments,
+        ]);
+    }
+
+    /**
+     * Cancel one of the patient's own future appointments.
+     */
+    public function cancel(Request $request, Appointment $appointment): RedirectResponse
+    {
+        abort_unless($request->user()->patient?->id === $appointment->patient_id, 403);
+
+        if (! $appointment->isCancellable()) {
+            return back()->with('error', 'This appointment can no longer be cancelled.');
+        }
+
+        $appointment->update(['status' => 'cancelled']);
+
+        ActivityLog::record(
+            'appointment_cancelled',
+            'Cancelled their own '.$appointment->service.' visit on '.$appointment->scheduled_date->format('M d, Y'),
+            $appointment,
+        );
+
+        $when = $appointment->scheduled_date->format('M d, Y').' at '.$appointment->scheduled_time;
+
+        $this->notifications->toClinic(
+            NotificationType::APPOINTMENT_CANCELLED,
+            'Appointment cancelled',
+            $request->user()->name.' cancelled their '.$appointment->service.' visit on '.$when.'.',
+            route('staff.appointments.index', absolute: false),
+        );
+
+        $this->notifications->toDentist(
+            $appointment->dentist,
+            NotificationType::APPOINTMENT_CANCELLED,
+            'Visit cancelled by patient',
+            $request->user()->name.' cancelled the '.$appointment->service.' visit on '.$when.'.',
+            route('dentist.schedule', absolute: false),
+        );
+
+        return back()->with('success', 'Appointment cancelled.');
+    }
+
+    /**
+     * Self-service reschedule screen for one of the patient's upcoming visits.
+     */
+    public function rescheduleForm(Request $request, Appointment $appointment): View|RedirectResponse
+    {
+        abort_unless($request->user()->patient?->id === $appointment->patient_id, 403);
+
+        if (! $this->isReschedulable($appointment)) {
+            return redirect()
+                ->route('appointments.index')
+                ->with('error', 'Only upcoming pending or confirmed appointments can be rescheduled.');
+        }
+
+        return view('appointments.reschedule', [
+            'appointment' => $appointment->load('dentist.user'),
+            'timeSlots' => Appointment::timeSlots(),
+        ]);
+    }
+
+    /**
+     * Move one of the patient's own upcoming visits to a new slot.
+     * Capacity, Sunday closure, and double-booking are re-validated.
+     */
+    public function reschedule(Request $request, Appointment $appointment): RedirectResponse
+    {
+        abort_unless($request->user()->patient?->id === $appointment->patient_id, 403);
+
+        if (! $this->isReschedulable($appointment)) {
+            return redirect()
+                ->route('appointments.index')
+                ->with('error', 'Only upcoming pending or confirmed appointments can be rescheduled.');
+        }
+
+        $data = $request->validate([
+            'scheduled_date' => ['required', 'date', 'after_or_equal:today'],
+            'scheduled_time' => ['required', Rule::in(Appointment::timeSlots())],
+        ]);
+
+        $errors = $this->validateRescheduledSlot($data, $appointment);
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        $date = Carbon::parse($data['scheduled_date'])->startOfDay();
+        $from = $appointment->scheduled_date->format('M d, Y').' '.$appointment->scheduled_time;
+
+        $appointment->update([
+            'scheduled_date' => $date->toDateString(),
+            'scheduled_time' => $data['scheduled_time'].':00',
+        ]);
+
+        ActivityLog::record(
+            'appointment_rescheduled',
+            'Moved their own '.$appointment->service.' visit from '.$from.' to '.$date->format('M d, Y').' at '.$data['scheduled_time'],
+            $appointment,
+        );
+
+        $to = $date->format('M d, Y').' at '.$data['scheduled_time'];
+
+        $this->notifications->toClinic(
+            NotificationType::APPOINTMENT_RESCHEDULED,
+            'Appointment rescheduled',
+            $request->user()->name.' moved their '.$appointment->service.' visit to '.$to.'.',
+            route('staff.appointments.index', absolute: false),
+        );
+
+        $this->notifications->toDentist(
+            $appointment->dentist,
+            NotificationType::APPOINTMENT_RESCHEDULED,
+            'Visit rescheduled',
+            $request->user()->name.' moved the '.$appointment->service.' visit to '.$to.'.',
+            route('dentist.schedule', absolute: false),
+        );
+
+        return redirect()
+            ->route('appointments.index')
+            ->with('success', 'Appointment moved to '.$date->format('M d, Y').' at '.$data['scheduled_time'].', pending/confirmed status unchanged.');
+    }
+
+    private function isReschedulable(Appointment $appointment): bool
+    {
+        return in_array($appointment->status, ['pending', 'confirmed'], true)
+            && $appointment->scheduled_date->greaterThanOrEqualTo(today());
+    }
+
+    /**
+     * Slot-level checks for moving an appointment: Sunday closure, past
+     * slots, clinic-wide capacity, and the patient's own double-booking.
+     *
+     * @param  array{scheduled_date: string, scheduled_time: string}  $data
+     * @return array<string, string>
+     */
+    private function validateRescheduledSlot(array $data, Appointment $appointment): array
+    {
+        $date = Carbon::parse($data['scheduled_date'])->startOfDay();
+        $errors = [];
+
+        if ($date->dayOfWeek === Carbon::SUNDAY) {
+            $errors['scheduled_date'] = 'The clinic is closed on Sundays, please pick another date.';
+
+            return $errors;
+        }
+
+        if (ClinicClosure::isClosed($date)) {
+            $closure = ClinicClosure::where('date', $date->toDateString())->first();
+            $errors['scheduled_date'] = 'The clinic is closed on '.Carbon::parse($date)->format('M d, Y')
+                .($closure?->name ? ' ('.$closure->name.')' : '')
+                .' — please pick another date.';
+
+            return $errors;
+        }
+
+        if ($date->isSameDay(now()) && $data['scheduled_time'] <= now()->format('H:i')) {
+            $errors['scheduled_time'] = 'This time slot has already passed — pick a later one.';
+
+            return $errors;
+        }
+
+        $dentistCount = Dentist::count();
+
+        if ($dentistCount === 0) {
+            $errors['scheduled_time'] = 'No dentists are registered yet. Please try again later.';
+
+            return $errors;
+        }
+
+        $bookedCount = Appointment::query()
+            ->where('id', '!=', $appointment->id)
+            ->conflictingAt($date->toDateString(), $data['scheduled_time'])
+            ->count();
+
+        if ($bookedCount >= $dentistCount) {
+            $errors['scheduled_time'] = 'This time slot is fully booked — please pick another date or time.';
+
+            return $errors;
+        }
+
+        $hasOwnConflict = Appointment::query()
+            ->where('id', '!=', $appointment->id)
+            ->where('patient_id', $appointment->patient_id)
+            ->conflictingAt($date->toDateString(), $data['scheduled_time'])
+            ->exists();
+
+        if ($hasOwnConflict) {
+            $errors['scheduled_time'] = 'You already have another appointment at this time slot.';
+        }
+
+        return $errors;
+    }
+
+    private function validateSlot(array $data): array
+    {
+        $date = Carbon::parse($data['scheduled_date'])->startOfDay();
+        $errors = [];
+
+        if ($date->dayOfWeek === Carbon::SUNDAY) {
+            $errors['scheduled_date'] = 'The clinic is closed on Sundays, please pick another date.';
+        } elseif ($date->isSameDay(now()) && $data['scheduled_time'] <= now()->format('H:i')) {
+            $errors['scheduled_time'] = 'This time slot has already passed — pick a later one.';
+        } elseif (ClinicClosure::isClosed($date)) {
+            $closure = ClinicClosure::where('date', $date->toDateString())->first();
+            $errors['scheduled_date'] = 'The clinic is closed on '.Carbon::parse($date)->format('M d, Y')
+                .($closure?->name ? ' ('.$closure->name.')' : '')
+                .' — please pick another date.';
+        } else {
+            $dentistCount = Dentist::count();
+
+            if ($dentistCount === 0) {
+                $errors['scheduled_time'] = 'No dentists are registered yet. Please try again later.';
+            } else {
+                $bookedCount = Appointment::conflictingAt($date->toDateString(), $data['scheduled_time'])->count();
+
+                if ($bookedCount >= $dentistCount) {
+                    $errors['scheduled_time'] = 'This time slot is fully booked — please pick another date or time.';
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @return array{0: string, 1: string} [firstname, lastname]
+     */
+    private function splitName(string $name): array
+    {
+        $parts = preg_split('/\s+/', trim($name), 2) ?: [];
+
+        return [$parts[0] ?? '', $parts[1] ?? ''];
+    }
+}

@@ -56,5 +56,7 @@
                 &copy; {{ date('Y') }} Sombilon-Sabuga Dental Clinic. All rights reserved.
             </footer>
         </div>
+
+        @livewireScripts
     </body>
 </html>
